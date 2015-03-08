@@ -75,7 +75,7 @@ end
 
 #String works
 class RMessage
-	attr_accessor:name,:user,:host,:cmd,:msg,:chan
+	attr_accessor:nick,:user,:host,:cmd,:msg,:chan
 	def parse(inmsg)
 		#Parses IRC message like :nick!user@host cmd :msg
 		@nick = inmsg.sub(/^:([^!]+)!.+$/){$1}
@@ -241,6 +241,7 @@ def weechat_init
 		else
 			m += " Loser!"
 		end
+		msg(m,c)
 		
 	})
 		
