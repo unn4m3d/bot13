@@ -226,6 +226,7 @@ def weechat_init
 				m += "Loser"
 			else
 				m += " Second chance"
+				msg(m,c)dd 
 				num[2] = Random.rand(10)
 				m = ">" + num[0].to_s + num[1].to_s + num[2].to_s + "<"
 				if num[0] == num[1] and num[1] == num[2]
