@@ -6,10 +6,10 @@ Bot for weechat written in Ruby
 
 ##Changelog
 ####v 1.2A
-New bandit algorythm
+New bandit algorythm<br>
 Fixed a bug that passed username instead of nick in command args
 ####v 1.1A
-New commands : !cmds, !random `[a[,b]]`, !bandit, !winners
+New commands : !cmds, !random `[a[,b]]`, !bandit, !winners<br>
 Upgraded parser : now reads correctly username,channel and special symbols
 ####v 1.0A
 Initial release
