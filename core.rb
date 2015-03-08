@@ -1,11 +1,15 @@
 =begin
-	Bot13 v 1.1 Alpha
+	Bot13 v 1.2 Alpha
 	By S.Melnikov a.k.a. unn4m3d
 	License : GNU GPLv3
 	
 	Changelog:
+		v 1.2A(#2)
+		>New bandit algorythm!
+		>Fixed a bug in a cmd params  (that passed username instead of nick)
 		
 		v 1.1A(#1)
+		>Added !bandit and !winners cmds
 		>Added !random command
 		>Added !cmds command
 		>Fixed bugs
@@ -19,7 +23,7 @@
 $channel = "#th1rt3en" #Default channel
 $buf_pntr = nil
 $works = false
-$version = "1.1 Alpha"
+$version = "1.2 Alpha"
 $author = "unn4m3d"
 $home = Dir.chdir{|path| path} #Dirty hack!!! =)
 $bandits = {}
@@ -171,7 +175,7 @@ def comcb(data,signal,sdata)
 				s += "', "
 			end
 			Weechat.print("",s)
-			$cmds[k].execute(pmsg.msg.split(" ")[1..-1],pmsg.user,pmsg.chan)
+			$cmds[k].execute(pmsg.msg.split(" ")[1..-1],pmsg.nick,pmsg.chan)
 			break
 		end
 	end
@@ -207,20 +211,37 @@ def weechat_init
 	})
 	addcmd("!bandit", 0, Proc.new{
 		|a,u,c|
-		num1 = Random.rand(10)
-		msg(">" + num1.to_s + "--<",c)
-		num2 = Random.rand(10)
-		msg(">" + num1.to_s + num2.to_s + "-<",c)
-		num3 = Random.rand(10)
-		m = ">" + num1.to_s + num2.to_s + num3.to_s + "<"
-		if num1 != num2 or num2 != num3 or num1 != num3
-				m += " Loser!"
-		else
-				m += " Great! You're the new bandit! Write !winners to watch others"
-				b_set(num1, u)
-		
+		num = []
+		num[0] = Random.rand(10)
+		msg(">" + num[0].to_s + "--<",c)
+		num[1] = Random.rand(10)
+		while num[1] != num[0] and Random.rand(10) < 5
+			num[1] = Random.rand(10)
 		end
-		msg(m,c)
+		msg(">" + num[0].to_s + num[1].to_s + "-<",c)
+		num[2] = Random.rand(10)
+		m = ">" + num[0].to_s + num[1].to_s + num[2].to_s + "<"
+		if num[2] != num[1]
+			if num[1] != num[0]
+				m += "Loser"
+			else
+				m += " Second chance"
+				num[2] = Random.rand(10)
+				m = ">" + num[0].to_s + num[1].to_s + num[2].to_s + "<"
+				if num[0] == num[1] and num[1] == num[2]
+					m += " You won! Type !winners to watch winners!"
+					b_set(num[0],u)
+				else
+					m += " Loser!"
+				end
+			end
+		elsif num[1] == num[0]
+			m += " You won! Type !winners to watch winners!"
+			b_set(num[0],u)
+		else
+			m += " Loser!"
+		end
+		
 	})
 		
 	addcmd("!winners", 0, Proc.new{
