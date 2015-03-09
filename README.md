@@ -5,6 +5,10 @@ Bot for weechat written in Ruby
 /ruby load /path/to/your/core.rb
 
 ##Changelog
+####v 1.5B
+Added permissions<br>
+Added personal cmd timeout<br>
+Now it can do stuff only at one channel
 ####v 1.4A
 Bot now can be switched off. Use `/dbot on` and `/dbot off` to switch<br>
 Added messages that are sent when user joins<br>

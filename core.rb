@@ -1,9 +1,14 @@
 =begin
-	Bot13 v 1.4 Alpha
+	Bot13 v 1.5 Beta
 	By S.Melnikov a.k.a. unn4m3d
 	License : GNU GPLv3
 	
 	Changelog:
+		v 1.5B(#5)
+		>Added permissions
+		>Every command has its own timeout
+		>Now can only execute commands at one channel (Will be fixed in 1.6)
+	
 		v 1.4A(#4)
 		>Added !help command
 		>Upgraded !motd command
@@ -35,10 +40,10 @@
 =end
 
 #Environment vars
-$channel = "#th1rt3en" #Default channel
+$channel = "#th1rt3en"
 $buf_pntr = nil
 $works = false
-$version = "1.4 Alpha"
+$version = "1.5 Beta"
 $author = "unn4m3d"
 $home = Dir.chdir{|path| path} #Dirty hack!!! =)
 $bandits = {}
@@ -100,6 +105,46 @@ def setstate(s)
 	end
 end
 
+$perms = {}
+class Permissions
+	def self.set(nick,lvl)
+		$perms[nick] = lvl
+		self.save()
+	end
+
+	def self.load()
+		f = File.open($home + "/.bot13/perms.cfg")
+		while not f.eof?
+			s = f.gets.split(" ")
+			$perms[s[0]] = s[1].to_i
+		end
+		f.close
+	end
+
+	def self.save()
+		if not $perms[".default"]
+			$perms[".default"] = 0
+		end
+		f = File.open($home + "/.bot13/perms.cfg","w")
+		for k in $perms.keys()
+			f.write(k + " " + $perms[k].to_s + "\n") 
+		end
+		f.close
+	end
+
+	def self.set_default(lvl)
+		self.set(".default",lvl)
+	end
+
+	def self.get(name)
+		if $perms[name]
+			return $perms[name]
+		else
+			return $perms[".default"]
+		end
+	end
+end
+
 #String works
 class RMessage
 	attr_accessor:nick,:user,:host,:cmd,:msg,:chan
@@ -109,7 +154,7 @@ class RMessage
 		@msg = inmsg.sub(/^:[^:]+:/, "")
 		@chan = inmsg.sub(/^:[^:#]+(#.+)\ :.*$/){$1}
 		@user = inmsg.sub(/^:[^!]+!(.+)@.+\ :.*$/){$1}
-		Weechat.print("", "Parsed message : " + @msg + " from " + @nick + "(" + @user + ") on " + @chan)
+		Weechat.print("", "Parsed message : " + @msg + " from " + @nick + "(" + @user + ") on " + @chan + ".")
 	end
 end
 
@@ -146,10 +191,11 @@ class BotCommand
 	#@param func Proc object to execute on call 
 	#@param p Permission level to do that. Not implemented yet, please set to 0
 	attr_accessor :permlvl
-	def set(func, p,name)
+	def set(func, p,name,t)
 		@func = func
 		@permlvl = p
 		@name = name
+		@timeout = t
 	end
 	
 	#Basic entrypoint
@@ -159,14 +205,17 @@ class BotCommand
 	#@param chan Channel where the command has been received 
 	def execute(args,usr,chan)
 		if $cmdt[@name][usr] != nil
-			if $cmdt[@name][usr] + $timeout > Time.now
-				Weechat.command($buf_pntr,"/notice #{usr} This command has #{$timeout} seconds timeout")
+			if $cmdt[@name][usr] + @timeout > Time.now
+				Weechat.command($buf_pntr,"/notice #{usr} This command has #{@timeout} seconds timeout")
 				return
 			end
 		end
+		if Permissions.get(usr) < @permlvl
+			Weechat.command($buf_pntr,"/notice #{usr} You have not permission to call this")
+			return
+		end
 		@func.call(args,usr,chan)
 		$cmdt[@name][usr] = Time.now
-	
 	end
 end
 
@@ -174,9 +223,9 @@ $cmds = {}
 $cmdt = {}
 $timeout = 150
 
-def addcmd(name,perm,cmd)
+def addcmd(name,perm,cmd,timeout)
 	$cmds[name] = BotCommand.new()
-	$cmds[name].set(cmd,perm,name)
+	$cmds[name].set(cmd,perm,name,timeout)
 	$cmds.rehash
 	$cmdt[name] = {}
 end
@@ -197,6 +246,14 @@ def admcb(data,buffer,args)
 	return Weechat::WEECHAT_RC_OK
 end
 
+def isvc?(chan)
+	for v in $channels
+		if v == chan
+			return true
+		end
+	end
+	return false
+end
 
 def comcb(data,signal,sdata)
 	Weechat.print("","Received SDATA : " + sdata)
@@ -205,6 +262,9 @@ def comcb(data,signal,sdata)
 	end
 	pmsg = RMessage.new()
 	pmsg.parse(sdata)
+	if $channel != pmsg.chan then
+		return Weechat::WEECHAT_RC_OK
+	end
 	for k in $cmds.keys()
 		if (pmsg.msg + " ")[0...k.length+1] == k + " "   
 			s = "Executing cmd " + k + " with args "
@@ -249,14 +309,14 @@ def weechat_init
 	Weechat.hook_signal("*,irc_in2_join","joincb","")
 	addcmd("!bot13",0,Proc.new{
 		|a,u,c| msg("Bot-Th1rt3en v" + $version + " by " + $author, c)
-	})
+	},10)
 	$cmds.rehash()
 	addcmd("!cmds",0,Proc.new{
 		|a,u,c|
 		for k in $cmds.keys()
 			msg(k,c)
 		end
-	})
+	},20)
 	addcmd("!random", 0, Proc.new{
 		|a,u,c|
 		if a.length == 0
@@ -266,7 +326,7 @@ def weechat_init
 		else
 			msg((Integer(a[0])+ Random.rand(Integer(a[1]) - Integer(a[0]))).to_s,c)
 		end
-	})
+	},10)
 	addcmd("!bandit", 0, Proc.new{
 		|a,u,c|
 		num = []
@@ -302,12 +362,12 @@ def weechat_init
 		end
 		msg(m,c)
 		
-	})
+	},60)
 		
 	addcmd("!winners", 0, Proc.new{
 		|a,u,c|
 		b_show(c)
-	})
+	},10)
 		
 	addcmd("!motd", 0, Proc.new{
 		|a,u,c|
@@ -316,7 +376,7 @@ def weechat_init
 		else
 			msg($motd,c)
 		end
-	})
+	},10)
 	addcmd("!help", 0, Proc.new{
 		|a,u,c|
 		msg("=============HELP=============",c)
@@ -330,13 +390,39 @@ def weechat_init
 		msg("!motd - show MOTD",c)
 		msg("!motd m - set MOTD m", c)
 		msg("==============================",c)
-	})
+	},60)
+		
+	addcmd("!perm", 5, Proc.new{
+		|a,u,c|
+		if a.length == 1 
+			if a[0] == "get"
+				Weechat.command($buf_pntr,"/notice #{u} You have level #{$perms[u].to_s}")
+			elsif a[0] == "show"
+				for k in $perms.keys()
+					msg(k + " " + $perms[k].to_s,c)
+				end
+			end
+			
+		elsif a.length == 2
+			if a[0] == "set"
+				Permissions.set(u,a[1].to_i)
+			end
+		elsif a.length > 2
+			if a[0] == "set"
+				Permissions.set(a[1],a[2].to_i)
+			end
+		end
+	},5)
 	if not Dir.exists?($home + "/.bot13/")
 		Dir.mkdir($home + "/.bot13/")
 	end
 	if not File.exists?($home + "/.bot13/bandit.cfg")
 		b_save()
 	end
+	if not File.exists?($home + "/.bot13/perms.cfg")
+		p_save()
+	end
 	b_load()
+	Permissions.load()
 	Weechat.command($buf_pntr,"/me " + getmsg("lvlup"))
 end
