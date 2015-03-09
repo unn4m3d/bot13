@@ -1,9 +1,17 @@
 =begin
-	Bot13 v 1.2 Alpha
+	Bot13 v 1.3 Alpha
 	By S.Melnikov a.k.a. unn4m3d
 	License : GNU GPLv3
 	
 	Changelog:
+		v 1.3A(#3)
+		>Random messages
+		>Added !motd command
+		>Added /sbm command (Sets motd)
+		>Timeout between commands
+		>Refactored some lines
+		>Fixed a bug with table of records
+		
 		v 1.2A(#2)
 		>New bandit algorythm!
 		>Fixed a bug in a cmd params  (that passed username instead of nick)
@@ -23,16 +31,27 @@
 $channel = "#th1rt3en" #Default channel
 $buf_pntr = nil
 $works = false
-$version = "1.2 Alpha"
+$version = "1.3 Alpha"
 $author = "unn4m3d"
 $home = Dir.chdir{|path| path} #Dirty hack!!! =)
 $bandits = {}
+$msgs = {
+	"lose" => ["LOL!", "Loser!", "Korean Random...", "I dunno why LOL", "Losers, losers everywhere", "kekeke"],
+	"win"  => ["You're the great master!","Congratulations! You are the WinRAR!!1","WHYYYY???"],
+	"lvlup"=> ["LVL UP =^_^=", "Level up!", "is the greatest script in the world"],
+	"bot13"=> ["Bot-th1rt3en #{$version} by #{$author}", "I am the greatest bot!"]
+}
+$motd = "#MAPC is c00l!"
+
+def getmsg(m)
+	return $msgs[m][Random.rand($msgs[m].size)]
+end
 
 #Bandit functions
 def b_save()
 	f = File.new($home + "/.bot13/bandit.cfg", "w")
 	for k in $bandits.keys() 
-		f.write(k.to_s + " " + $bandits[k].to_s + "\n") 
+		f.write(k.to_s + " " + $bandits[k].to_s) 
 	end
 	f.close()
 end
@@ -107,6 +126,10 @@ def msg(msg,chan)
 	Weechat.command($buf_pntr, "/msg " + chan + " " + msg)
 end
 
+def notice(msg,usr)
+	Weechat.command($buf_pntr,"/notice " + usr + " " + msg)
+end
+
 #Base class for commands
 
 class BotCommand
@@ -114,11 +137,11 @@ class BotCommand
 	#
 	#@param func Proc object to execute on call 
 	#@param p Permission level to do that. Not implemented yet, please set to 0
-	attr_reader :permlvl
-	attr_writer :permlvl
-	def set(func, p)
+	attr_accessor :permlvl
+	def set(func, p,name)
 		@func = func
 		@permlvl = p
+		@name = name
 	end
 	
 	#Basic entrypoint
@@ -127,21 +150,33 @@ class BotCommand
 	#@param usr User that has sent the command
 	#@param chan Channel where the command has been received 
 	def execute(args,usr,chan)
+		if $cmdt[@name][usr] != nil
+			if $cmdt[@name][usr] + $timeout > Time.now
+				Weechat.command($buf_pntr,"/notice #{usr} This command has #{$timeout} seconds timeout")
+				return
+			end
+		end
 		@func.call(args,usr,chan)
+		$cmdt[@name][usr] = Time.now
+	
 	end
 end
 
-$cmds = nil
+$cmds = {}
+$cmdt = {}
+$timeout = 150
 
 def addcmd(name,perm,cmd)
 	$cmds[name] = BotCommand.new()
-	$cmds[name].set(cmd,perm)
+	$cmds[name].set(cmd,perm,name)
 	$cmds.rehash
+	$cmdt[name] = {}
 end
 
 def addalias(name,cmd)
 	$cmds[name] = cmds[cmd]
 	$cmds.rehash
+	$cmdt[name] = {}
 end
 
 def admcb(data,buffer,args)
@@ -182,16 +217,20 @@ def comcb(data,signal,sdata)
 	return Weechat::WEECHAT_RC_OK
 end
 
+def motdcb(data,buffer,args)
+	$motd = args
+end
+
 def weechat_init
 	Weechat.register("Bot13", $author,$version, "GNU GPLv3", "A simple bot written in ruby","","cp-1251")
 	$buf_pntr = Weechat.buffer_get_pointer(Weechat.current_buffer,"buf_pntr")
 	#Hooks
 	ch = Weechat.hook_command("dbot", "","","","","admcb","") #Command hook
+	ch = Weechat.hook_command("sbm", "","","","","motdcb","") #Command hook
 	sh = Weechat.hook_signal("*,irc_in2_privmsg", "comcb","")
-	$cmds = {"!bot13" => BotCommand.new()}
-	$cmds["!bot13"].set(Proc.new{
+	addcmd("!bot13",0,Proc.new{
 		|a,u,c| msg("Bot-Th1rt3en v" + $version + " by " + $author, c)
-	},0)
+	})
 	$cmds.rehash()
 	addcmd("!cmds",0,Proc.new{
 		|a,u,c|
@@ -223,24 +262,24 @@ def weechat_init
 		m = ">" + num[0].to_s + num[1].to_s + num[2].to_s + "<"
 		if num[2] != num[1]
 			if num[1] != num[0]
-				m += "Loser"
+				m += getmsg("lose")
 			else
 				m += " Second chance"
 				msg(m,c)
 				num[2] = Random.rand(10)
 				m = ">" + num[0].to_s + num[1].to_s + num[2].to_s + "<"
 				if num[0] == num[1] and num[1] == num[2]
-					m += " You won! Type !winners to watch winners!"
+					m += getmsg("win") + " Type !winners to watch winners!"
 					b_set(num[0],u)
 				else
-					m += " Loser!"
+					m += getmsg("lose")
 				end
 			end
 		elsif num[1] == num[0]
-			m += " You won! Type !winners to watch winners!"
+			m += getmsg("win") + " Type !winners to watch winners!"
 			b_set(num[0],u)
 		else
-			m += " Loser!"
+			m += getmsg("lose")
 		end
 		msg(m,c)
 		
@@ -250,6 +289,11 @@ def weechat_init
 		|a,u,c|
 		b_show(c)
 	})
+		
+	addcmd("!motd", 0, Proc.new{
+		|a,u,c|
+		msg($motd,c)
+	})
 	if not Dir.exists?($home + "/.bot13/")
 		Dir.mkdir($home + "/.bot13/")
 	end
@@ -257,5 +301,5 @@ def weechat_init
 		b_save()
 	end
 	b_load()
-	Weechat.command($buf_pntr,"/me LVL UP =^_^=")
+	Weechat.command($buf_pntr,"/me " + getmsg("lvlup"))
 end

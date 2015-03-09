@@ -5,6 +5,11 @@ Bot for weechat written in Ruby
 /ruby /path/to/your/core.rb
 
 ##Changelog
+####v 1.3A
+Refactored ~10 lines<br>
+Fixed a bug with table of records<br>
+Added timeout<br>
+Added random messages
 ####v 1.2A
 New bandit algorythm<br>
 Fixed a bug that passed username instead of nick in command args
