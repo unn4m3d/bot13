@@ -1,9 +1,16 @@
 =begin
-	Bot13 v 1.3 Alpha
+	Bot13 v 1.4 Alpha
 	By S.Melnikov a.k.a. unn4m3d
 	License : GNU GPLv3
 	
 	Changelog:
+		v 1.4A(#4)
+		>Added !help command
+		>Upgraded !motd command
+		>Messages when user joins
+		>Upgraded parser (Now you can use e.g. !lol and !lold, and it can be different commands)
+		>Now bot can be switched off
+		
 		v 1.3A(#3)
 		>Random messages
 		>Added !motd command
@@ -31,7 +38,7 @@
 $channel = "#th1rt3en" #Default channel
 $buf_pntr = nil
 $works = false
-$version = "1.3 Alpha"
+$version = "1.4 Alpha"
 $author = "unn4m3d"
 $home = Dir.chdir{|path| path} #Dirty hack!!! =)
 $bandits = {}
@@ -39,7 +46,8 @@ $msgs = {
 	"lose" => ["LOL!", "Loser!", "Korean Random...", "I dunno why LOL", "Losers, losers everywhere", "kekeke"],
 	"win"  => ["You're the great master!","Congratulations! You are the WinRAR!!1","WHYYYY???"],
 	"lvlup"=> ["LVL UP =^_^=", "Level up!", "is the greatest script in the world"],
-	"bot13"=> ["Bot-th1rt3en #{$version} by #{$author}", "I am the greatest bot!"]
+	"bot13"=> ["Bot-th1rt3en #{$version} by #{$author}", "I am the greatest bot!"],
+	"join" => ["LOL, `U` has joined!", "`U` is the best thing ever"]
 }
 $motd = "#MAPC is c00l!"
 
@@ -105,11 +113,11 @@ class RMessage
 	end
 end
 
-def strstt(str,pat)
-	if str[0..pat.length] == pat
-		return true
-	else
-		return false
+class JMessage < RMessage
+	def parse(inmsg)
+		super(inmsg)
+		@chan = inmsg.sub(/:[^:#]+:(#.+)/){$1}
+		Weechat.print("",@nick + "(" + @user + ") has joined " + @chan)
 	end
 end
 #End of string works
@@ -192,13 +200,13 @@ end
 
 def comcb(data,signal,sdata)
 	Weechat.print("","Received SDATA : " + sdata)
-	#if not $works
-	#	return Weechat::WEECHAT_RC_OK
-	#end
+	if not $works
+		return Weechat::WEECHAT_RC_OK
+	end
 	pmsg = RMessage.new()
 	pmsg.parse(sdata)
 	for k in $cmds.keys()
-		if pmsg.msg[0...k.length] == k
+		if (pmsg.msg + " ")[0...k.length+1] == k + " "   
 			s = "Executing cmd " + k + " with args "
 			sp = []
 			if pmsg.msg[k.length+2] != nil
@@ -221,6 +229,16 @@ def motdcb(data,buffer,args)
 	$motd = args
 end
 
+def joincb(data,signal,sdata)
+	if $works
+		Weechat.print("","Received SDATA : " + sdata)
+		pmsg = JMessage.new
+		pmsg.parse(sdata)
+		msg(getmsg("join").gsub(/`U`/,pmsg.nick),pmsg.chan)
+	end
+	return Weechat::WEECHAT_RC_OK
+end
+
 def weechat_init
 	Weechat.register("Bot13", $author,$version, "GNU GPLv3", "A simple bot written in ruby","","cp-1251")
 	$buf_pntr = Weechat.buffer_get_pointer(Weechat.current_buffer,"buf_pntr")
@@ -228,6 +246,7 @@ def weechat_init
 	ch = Weechat.hook_command("dbot", "","","","","admcb","") #Command hook
 	ch = Weechat.hook_command("sbm", "","","","","motdcb","") #Command hook
 	sh = Weechat.hook_signal("*,irc_in2_privmsg", "comcb","")
+	Weechat.hook_signal("*,irc_in2_join","joincb","")
 	addcmd("!bot13",0,Proc.new{
 		|a,u,c| msg("Bot-Th1rt3en v" + $version + " by " + $author, c)
 	})
@@ -292,7 +311,25 @@ def weechat_init
 		
 	addcmd("!motd", 0, Proc.new{
 		|a,u,c|
-		msg($motd,c)
+		if a.length > 0
+			$motd = a.join(" ")
+		else
+			msg($motd,c)
+		end
+	})
+	addcmd("!help", 0, Proc.new{
+		|a,u,c|
+		msg("=============HELP=============",c)
+		msg("!random - random 0 to 9",c)
+		msg("!random x - random 0 to x", c)
+		msg("!random x y - random x to y", c)
+		msg("!bot13 - bot version",c)
+		msg("!cmds - list commands",c)
+		msg("!bandit - play bandit",c)
+		msg("!winners - watch bandits",c)
+		msg("!motd - show MOTD",c)
+		msg("!motd m - set MOTD m", c)
+		msg("==============================",c)
 	})
 	if not Dir.exists?($home + "/.bot13/")
 		Dir.mkdir($home + "/.bot13/")
