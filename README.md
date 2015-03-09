@@ -4,7 +4,15 @@ Bot for weechat written in Ruby
 ##How to launch
 /ruby load /path/to/your/core.rb
 
+##How to install
+####On Linux
+	Move papi.rb and plugins folder into ~/.bot13 folder
+####On Windows
+	Move papi.rb and plugins into %APPDATA%\.bot13\
+
 ##Changelog
+####v 1.6B
+Added Plugin API
 ####v 1.5B
 Added permissions<br>
 Added personal cmd timeout<br>

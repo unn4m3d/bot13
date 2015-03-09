@@ -1,9 +1,12 @@
 =begin
-	Bot13 v 1.5 Beta
+	Bot13 v 1.6 Beta
 	By S.Melnikov a.k.a. unn4m3d
 	License : GNU GPLv3
 	
 	Changelog:
+		v 1.6B(#6)
+		>Added PluginAPI
+		
 		v 1.5B(#5)
 		>Added permissions
 		>Every command has its own timeout
@@ -46,6 +49,7 @@ $works = false
 $version = "1.5 Beta"
 $author = "unn4m3d"
 $home = Dir.chdir{|path| path} #Dirty hack!!! =)
+require $home + "/.bot13/papi"
 $bandits = {}
 $msgs = {
 	"lose" => ["LOL!", "Loser!", "Korean Random...", "I dunno why LOL", "Losers, losers everywhere", "kekeke"],
@@ -424,5 +428,9 @@ def weechat_init
 	end
 	b_load()
 	Permissions.load()
+	if not Dir.exists?($home + "/.bot13/plugins/")
+		Dir.mkdir($home + "/.bot13/plugins")
+	end
+	papiinit
 	Weechat.command($buf_pntr,"/me " + getmsg("lvlup"))
 end
