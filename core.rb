@@ -46,7 +46,7 @@
 $channel = "#th1rt3en"
 $buf_pntr = nil
 $works = false
-$version = "1.5 Beta"
+$version = "1.6 Beta"
 $author = "unn4m3d"
 $home = Dir.chdir{|path| path} #Dirty hack!!! =)
 require $home + "/.bot13/papi"
