@@ -1,16 +1,22 @@
 =begin
-	Bot13 v 1.6 Beta
+	Bot13 v 1.6.2 Beta
 	By S.Melnikov a.k.a. unn4m3d
 	License : GNU GPLv3
 	
 	Changelog:
+		v 1.6.2B(#8)
+		>Upgraded nicklist (now can list users)
+		
+		v 1.6.1B(#7)
+		>Added nicklist API
+	
 		v 1.6B(#6)
 		>Added PluginAPI
 		
 		v 1.5B(#5)
 		>Added permissions
 		>Every command has its own timeout
-		>Now can only execute commands at one channel (Will be fixed in 1.6)
+		>Now can only execute commands at one channel (Will be fixed later)
 	
 		v 1.4A(#4)
 		>Added !help command
@@ -41,12 +47,12 @@
 		v 1.0A(#0)
 		>First release
 =end
-
 #Environment vars
 $channel = "#th1rt3en"
+$server = "irc.ircnet.ru"
 $buf_pntr = nil
 $works = false
-$version = "1.6 Beta"
+$version = "1.6.2 Beta"
 $author = "unn4m3d"
 $home = Dir.chdir{|path| path} #Dirty hack!!! =)
 require $home + "/.bot13/papi"
@@ -149,6 +155,41 @@ class Permissions
 	end
 end
 
+class NickList
+	attr_accessor :pntr,:lpntr,:chan,:serv
+	def update(s,c)
+		p = "irc"
+		name = "irc.#{s}.#{c}"
+		@pntr = Weechat.buffer_search(p,name)
+		@lpntr = Weechat.infolist_get("irc_nick","","#{s},#{c}")
+		@chan = c
+		@serv = s
+	end
+	def initialize(serv,chan)
+		p = "irc"
+		name = "irc.#{serv}.#{chan}"
+		@pntr = Weechat.buffer_search(p,name)
+		@lpntr = Weechat.infolist_get("irc_nick","","#{serv},#{chan}")
+		@chan = chan
+		@serv = serv
+	end
+	def list
+		while ptr != 0
+			l.push(Weechat.infolist_get("irc_nick",ptr.to_s(16),"#{@serv},#{@chan}"))
+			ptr = Weechat.infolist_next(@lpntr)
+		end
+		Weechat.infolist_reset_item_cursor(@lpntr)
+	end
+	def search(nick)
+		r = Weechat.nicklist_search_nick(@pntr,"",nick)
+		if r == ""
+			return false
+		else
+			return true
+		end
+	end
+end
+$list = nil
 #String works
 class RMessage
 	attr_accessor:nick,:user,:host,:cmd,:msg,:chan
@@ -250,15 +291,6 @@ def admcb(data,buffer,args)
 	return Weechat::WEECHAT_RC_OK
 end
 
-def isvc?(chan)
-	for v in $channels
-		if v == chan
-			return true
-		end
-	end
-	return false
-end
-
 def comcb(data,signal,sdata)
 	Weechat.print("","Received SDATA : " + sdata)
 	if not $works
@@ -300,7 +332,7 @@ def joincb(data,signal,sdata)
 		pmsg.parse(sdata)
 		msg(getmsg("join").gsub(/`U`/,pmsg.nick),pmsg.chan)
 	end
-	return Weechat::WEECHAT_RC_OK
+	return Weechat::WEECHAT_RC_OK	
 end
 
 def weechat_init
@@ -431,6 +463,7 @@ def weechat_init
 	if not Dir.exists?($home + "/.bot13/plugins/")
 		Dir.mkdir($home + "/.bot13/plugins")
 	end
+	$list = NickList.new($server,$channel)
 	papiinit
 	Weechat.command($buf_pntr,"/me " + getmsg("lvlup"))
 end

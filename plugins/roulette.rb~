@@ -18,6 +18,7 @@ def roulette(user)
 		msg("#{user}, you're alive! LOL! You receive #{sc} points", $channel)
 		
 	end
+	r_save
 end
 
 def r_save()

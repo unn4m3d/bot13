@@ -11,6 +11,10 @@ Bot for weechat written in Ruby
 	Move papi.rb and plugins into %APPDATA%\.bot13\
 
 ##Changelog
+####v 1.6.2B
+Upgraded NickList : Now it can list users
+####v 1.6.1B
+Upgraded API; Added NickList class that provides nick info
 ####v 1.6B
 Added Plugin API
 ####v 1.5B
