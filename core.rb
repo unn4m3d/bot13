@@ -177,7 +177,7 @@ class NickList
 	def list
 		l = []
 		p = Weechat.infolist_next(@lpntr)
-		while p and p != ""
+		while p and p != "" and p != 0
 			l.push(Weechat.infolist_string(@lpntr, "name"))
 			p = Weechat.infolist_next(@lpntr)
 			Weechat.print("", "p is #{p}")
