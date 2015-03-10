@@ -155,6 +155,7 @@ class Permissions
 	end
 end
 
+
 class NickList
 	attr_accessor :pntr,:lpntr,:chan,:serv
 	def update(s,c)
@@ -174,11 +175,12 @@ class NickList
 		@serv = serv
 	end
 	def list
-		while ptr != 0
-			l.push(Weechat.infolist_get("irc_nick",ptr.to_s(16),"#{@serv},#{@chan}"))
-			ptr = Weechat.infolist_next(@lpntr)
+		l = []
+		while Weechat.infolist_next(@lpntr)
+			l.push(Weechat.infolist_string(@lpntr, "name"))
 		end
 		Weechat.infolist_reset_item_cursor(@lpntr)
+		return l
 	end
 	def search(nick)
 		r = Weechat.nicklist_search_nick(@pntr,"",nick)
