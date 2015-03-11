@@ -1,31 +1,40 @@
 =begin
-	Bot13 v 1.6.2 Beta
+	Bot13 v 1.7 Beta
 	By S.Melnikov a.k.a. unn4m3d
 	License : GNU GPLv3
 	
 	Changelog:
-		v 1.6.2B(#8)
+		v 1.7B(#9) by unn4m3d
+		>Now can work on several channels
+		>Upgraded bandit saving algorythm
+		>Upgraded help
+		>Upgraded !cmds
+		>Upgraded bandit
+		>Added Reactions
+	
+		v 1.6.2B(#8) by unn4m3d
 		>Upgraded nicklist (now can list users)
+		>Fixed bug in social plugin
 		
-		v 1.6.1B(#7)
+		v 1.6.1B(#7) by unn4m3d
 		>Added nicklist API
 	
-		v 1.6B(#6)
+		v 1.6B(#6) by unn4m3d
 		>Added PluginAPI
 		
-		v 1.5B(#5)
+		v 1.5B(#5) by unn4m3d
 		>Added permissions
 		>Every command has its own timeout
 		>Now can only execute commands at one channel (Will be fixed later)
 	
-		v 1.4A(#4)
+		v 1.4A(#4) by unn4m3d
 		>Added !help command
 		>Upgraded !motd command
 		>Messages when user joins
 		>Upgraded parser (Now you can use e.g. !lol and !lold, and it can be different commands)
 		>Now bot can be switched off
 		
-		v 1.3A(#3)
+		v 1.3A(#3) by unn4m3d
 		>Random messages
 		>Added !motd command
 		>Added /sbm command (Sets motd)
@@ -33,26 +42,26 @@
 		>Refactored some lines
 		>Fixed a bug with table of records
 		
-		v 1.2A(#2)
+		v 1.2A(#2) by unn4m3d
 		>New bandit algorythm!
 		>Fixed a bug in a cmd params  (that passed username instead of nick)
 		
-		v 1.1A(#1)
+		v 1.1A(#1) by unn4m3d
 		>Added !bandit and !winners cmds
 		>Added !random command
 		>Added !cmds command
 		>Fixed bugs
 		>Upgraded parser (Now parses channel name, and reads correctly #,!,: symbols)
 		
-		v 1.0A(#0)
+		v 1.0A(#0) by unn4m3d
 		>First release
 =end
 #Environment vars
-$channel = "#th1rt3en"
+$channels = ["#th1rt3en","#mapc"]
 $server = "irc.ircnet.ru"
 $buf_pntr = nil
 $works = false
-$version = "1.6.2 Beta"
+$version = "1.7 Beta"
 $author = "unn4m3d"
 $home = Dir.chdir{|path| path} #Dirty hack!!! =)
 require $home + "/.bot13/papi"
@@ -74,7 +83,7 @@ end
 def b_save()
 	f = File.new($home + "/.bot13/bandit.cfg", "w")
 	for k in $bandits.keys() 
-		f.write(k.to_s + " " + $bandits[k].to_s) 
+		f.write(k.to_s + " " + $bandits[k].to_s + "\n") 
 	end
 	f.close()
 end
@@ -83,6 +92,9 @@ def b_load()
 	f = File.new($home + "/.bot13/bandit.cfg", "r")
 	while not f.eof?
 			s = f.gets()
+			if s == nil or s == ""
+				next
+			end
 			$bandits[s[0..1].to_i] = s[2..-1]
 	end
 	f.close()
@@ -269,9 +281,24 @@ class BotCommand
 	end
 end
 
+class HelpPage
+	attr_accessor:brief,:text
+	def initialize(b,t)
+		@brief = b
+		@text = t
+	end
+end
+
 $cmds = {}
 $cmdt = {}
-$timeout = 150
+$cmdh = {}
+$rtab = {}
+
+def addreact(regexps,func)
+	for r in regexps
+		$rtab[r] = func
+	end
+end
 
 def addcmd(name,perm,cmd,timeout)
 	$cmds[name] = BotCommand.new()
@@ -296,6 +323,15 @@ def admcb(data,buffer,args)
 	return Weechat::WEECHAT_RC_OK
 end
 
+def is_valid_chan(chan)
+	for c in $channels
+		if chan == c
+			return true
+		end
+	end
+	return false
+end
+
 def comcb(data,signal,sdata)
 	Weechat.print("","Received SDATA : " + sdata)
 	if not $works
@@ -303,7 +339,7 @@ def comcb(data,signal,sdata)
 	end
 	pmsg = RMessage.new()
 	pmsg.parse(sdata)
-	if $channel != pmsg.chan then
+	if not is_valid_chan(pmsg.chan) then
 		return Weechat::WEECHAT_RC_OK
 	end
 	for k in $cmds.keys()
@@ -323,6 +359,11 @@ def comcb(data,signal,sdata)
 			break
 		end
 	end
+	for r in $rtab.keys
+		if pmsg.msg.match(r)
+			$rtab[r].call(pmsg.user,pmsg.chan,pmsg.msg)
+		end
+	end
 	return Weechat::WEECHAT_RC_OK
 end
 
@@ -335,10 +376,19 @@ def joincb(data,signal,sdata)
 		Weechat.print("","Received SDATA : " + sdata)
 		pmsg = JMessage.new
 		pmsg.parse(sdata)
+		if not is_valid_chan(pmsg.chan)
+			return Weechat::WEECHAT_RC_OK
+		end
 		msg(getmsg("join").gsub(/`U`/,pmsg.nick),pmsg.chan)
 	end
 	return Weechat::WEECHAT_RC_OK	
 end
+
+def addhelp(name,brief,help)
+		$cmdh[name] =  HelpPage.new(brief,help)
+end
+
+
 
 def weechat_init
 	Weechat.register("Bot13", $author,$version, "GNU GPLv3", "A simple bot written in ruby","","cp-1251")
@@ -351,13 +401,19 @@ def weechat_init
 	addcmd("!bot13",0,Proc.new{
 		|a,u,c| msg("Bot-Th1rt3en v" + $version + " by " + $author, c)
 	},10)
+	addhelp("!bot13","Displays bot information","")
 	$cmds.rehash()
 	addcmd("!cmds",0,Proc.new{
 		|a,u,c|
 		for k in $cmds.keys()
-			msg(k,c)
+			s = k
+			if $cmdh[k]
+				s += " - " + $cmdh[k].brief
+			end
+			msg(s,u)
 		end
 	},20)
+	addhelp("!cmds", "Lists commands","")
 	addcmd("!random", 0, Proc.new{
 		|a,u,c|
 		if a.length == 0
@@ -368,40 +424,47 @@ def weechat_init
 			msg((Integer(a[0])+ Random.rand(Integer(a[1]) - Integer(a[0]))).to_s,c)
 		end
 	},10)
+	addhelp("!random", "Displays random number",
+		"Usage : !random [a[,b]]
+		Without args, it displays random number from 0 to 9
+		With 1 arg, it displays number from 0 to a
+		With 2 args, it displays number from a to b")
 	addcmd("!bandit", 0, Proc.new{
 		|a,u,c|
 		num = []
 		num[0] = Random.rand(10)
 		msg(">" + num[0].to_s + "--<",c)
 		num[1] = Random.rand(10)
-		while num[1] != num[0] and Random.rand(10) < 5
-			num[1] = Random.rand(10)
-		end
 		msg(">" + num[0].to_s + num[1].to_s + "-<",c)
 		num[2] = Random.rand(10)
-		m = ">" + num[0].to_s + num[1].to_s + num[2].to_s + "<"
-		if num[2] != num[1]
-			if num[1] != num[0]
-				m += getmsg("lose")
+		m = ">" + num.join + "<"
+		if num[1] == num[0] and num[1] == num[2]
+			m += " " + getmsg("win")
+			b_set(num[0],u)
+		else
+			if num[1] != num[2] and num[1] != num[0] and num[0] != num[2]
+					m += " " + getmsg("lose")
 			else
 				m += " Second chance"
 				msg(m,c)
-				num[2] = Random.rand(10)
-				m = ">" + num[0].to_s + num[1].to_s + num[2].to_s + "<"
-				if num[0] == num[1] and num[1] == num[2]
-					m += getmsg("win") + " Type !winners to watch winners!"
+				if num[1] == num[2]
+					num[0] = Random.rand(10)
+				elsif num[0] == num[2]
+					num[1] = Random.rand(10)
+				elsif num[0] == num[1]
+					num[2] = Random.rand(10)
+				end
+				m = ">" + num.join + "< "
+				if num[1] == num[0] and num[1] == num[2]
+					m += getmsg("win")
 					b_set(num[0],u)
 				else
 					m += getmsg("lose")
 				end
 			end
-		elsif num[1] == num[0]
-			m += getmsg("win") + " Type !winners to watch winners!"
-			b_set(num[0],u)
-		else
-			m += getmsg("lose")
 		end
 		msg(m,c)
+		
 		
 	},60)
 		
@@ -420,17 +483,26 @@ def weechat_init
 	},10)
 	addcmd("!help", 0, Proc.new{
 		|a,u,c|
-		msg("=============HELP=============",c)
-		msg("!random - random 0 to 9",c)
-		msg("!random x - random 0 to x", c)
-		msg("!random x y - random x to y", c)
-		msg("!bot13 - bot version",c)
-		msg("!cmds - list commands",c)
-		msg("!bandit - play bandit",c)
-		msg("!winners - watch bandits",c)
-		msg("!motd - show MOTD",c)
-		msg("!motd m - set MOTD m", c)
-		msg("==============================",c)
+		if a.length == 0
+			msg("=============HELP=============",u)
+			for k in $cmdh.keys
+				s = k + " - " + $cmdh[k].brief
+				msg(s,u)
+			end
+			msg("Type !help <command> to get more", u)
+			msg("==============================",u)
+		else
+			msg("=============HELP=============",u)
+			for p in a
+				if $cmdh[p]
+					msg(p + " - " + $cmdh[p].brief,u)
+					msg($cmdh[p].text,u)
+				else
+					msg(p + ": No such command",u)
+				end
+			end
+			msg("==============================",u)
+		end
 	},60)
 		
 	addcmd("!perm", 5, Proc.new{
@@ -461,7 +533,7 @@ def weechat_init
 		b_save()
 	end
 	if not File.exists?($home + "/.bot13/perms.cfg")
-		p_save()
+		Permissions.save()
 	end
 	b_load()
 	Permissions.load()
