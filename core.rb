@@ -1,4 +1,5 @@
 =begin
+	.::NOTE : This is version with russian memetic translation. There's no warranty with your mind::.
 	Bot13 v 1.7 Beta
 	By S.Melnikov a.k.a. unn4m3d
 	License : GNU GPLv3
@@ -61,16 +62,16 @@ $channels = ["#th1rt3en","#mapc"]
 $server = "irc.ircnet.ru"
 $buf_pntr = nil
 $works = false
-$version = "1.7 Beta"
+$version = "1.7 Beta RUS"
 $author = "unn4m3d"
 $home = Dir.chdir{|path| path} #Dirty hack!!! =)
 require $home + "/.bot13/papi"
 $bandits = {}
 $msgs = {
-	"lose" => ["LOL!", "Loser!", "Korean Random...", "I dunno why LOL", "Losers, losers everywhere", "kekeke"],
-	"win"  => ["You're the great master!","Congratulations! You are the WinRAR!!1","WHYYYY???"],
-	"lvlup"=> ["LVL UP =^_^=", "Level up!", "is the greatest script in the world"],
-	"bot13"=> ["Bot-th1rt3en #{$version} by #{$author}", "I am the greatest bot!"],
+	"lose" => ["LOL!", "Лузер!", "Korean Random...", "I dunno why LOL", "Losers, losers everywhere", "kekeke"],
+	"win"  => ["Да вы мастер!","Congratulations! You are the WinRAR!!1","WHYYYY???"],
+	"lvlup"=> ["LVL UP =^_^=", "Level up!", "- величайший скрипт мира"],
+	"bot13"=> ["Bot-th1rt3en #{$version} by #{$author}", "Я зохаваю Галактику! Фхтагн!"],
 	"join" => ["LOL, `U` has joined!", "`U` is the best thing ever"]
 }
 $motd = "#MAPC is c00l!"
@@ -268,12 +269,12 @@ class BotCommand
 	def execute(args,usr,chan)
 		if $cmdt[@name][usr] != nil
 			if $cmdt[@name][usr] + @timeout > Time.now
-				Weechat.command($buf_pntr,"/notice #{usr} This command has #{@timeout} seconds timeout")
+				Weechat.command($buf_pntr,"/notice #{usr} У этой команды таймаут #{@timeout} секунд")
 				return
 			end
 		end
 		if Permissions.get(usr) < @permlvl
-			Weechat.command($buf_pntr,"/notice #{usr} You have not permission to call this")
+			Weechat.command($buf_pntr,"/notice #{usr} У вас нет прав запускать эту команду")
 			return
 		end
 		@func.call(args,usr,chan)
@@ -391,7 +392,7 @@ end
 
 
 def weechat_init
-	Weechat.register("Bot13", $author,$version, "GNU GPLv3", "A simple bot written in ruby","","cp-1251")
+	Weechat.register("Bot13", $author,$version, "GNU GPLv3", "Простой бот на Ruby","","cp-1251")
 	$buf_pntr = Weechat.buffer_get_pointer(Weechat.current_buffer,"buf_pntr")
 	#Hooks
 	ch = Weechat.hook_command("dbot", "","","","","admcb","") #Command hook
@@ -401,7 +402,7 @@ def weechat_init
 	addcmd("!bot13",0,Proc.new{
 		|a,u,c| msg("Bot-Th1rt3en v" + $version + " by " + $author, c)
 	},10)
-	addhelp("!bot13","Displays bot information","")
+	addhelp("!bot13","Выводит информацию о боте","")
 	$cmds.rehash()
 	addcmd("!cmds",0,Proc.new{
 		|a,u,c|
@@ -424,7 +425,7 @@ def weechat_init
 			msg((Integer(a[0])+ Random.rand(Integer(a[1]) - Integer(a[0]))).to_s,c)
 		end
 	},10)
-	addhelp("!random", "Displays random number",
+	addhelp("!random", "Выводит рандомное число",
 		"Usage : !random [a[,b]]
 		Without args, it displays random number from 0 to 9
 		With 1 arg, it displays number from 0 to a
@@ -445,7 +446,7 @@ def weechat_init
 			if num[1] != num[2] and num[1] != num[0] and num[0] != num[2]
 					m += " " + getmsg("lose")
 			else
-				m += " Second chance"
+				m += " Второй шанс"
 				msg(m,c)
 				if num[1] == num[2]
 					num[0] = Random.rand(10)
@@ -489,7 +490,7 @@ def weechat_init
 				s = k + " - " + $cmdh[k].brief
 				msg(s,u)
 			end
-			msg("Type !help <command> to get more", u)
+			msg("Введите !help <команда> для получения сведений об этой команде", u)
 			msg("==============================",u)
 		else
 			msg("=============HELP=============",u)
@@ -498,7 +499,7 @@ def weechat_init
 					msg(p + " - " + $cmdh[p].brief,u)
 					msg($cmdh[p].text,u)
 				else
-					msg(p + ": No such command",u)
+					msg(p + ": Нет справочной страницы",u)
 				end
 			end
 			msg("==============================",u)
@@ -509,7 +510,7 @@ def weechat_init
 		|a,u,c|
 		if a.length == 1 
 			if a[0] == "get"
-				Weechat.command($buf_pntr,"/notice #{u} You have level #{$perms[u].to_s}")
+				Weechat.command($buf_pntr,"/notice #{u} У вас лвл #{$perms[u].to_s}")
 			elsif a[0] == "show"
 				for k in $perms.keys()
 					msg(k + " " + $perms[k].to_s,c)
@@ -526,6 +527,11 @@ def weechat_init
 			end
 		end
 	},5)
+	addalias("!бот13", "!bot13")
+	addalias("!рандом", "!random")
+	addalias("!бандит", "!bandit")
+	addalias("!бандиты", "!winners")
+	addalias("!хелп", "!help")
 	if not Dir.exists?($home + "/.bot13/")
 		Dir.mkdir($home + "/.bot13/")
 	end
