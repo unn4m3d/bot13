@@ -11,6 +11,13 @@ Bot for weechat written in Ruby
 	Move papi.rb and plugins into %APPDATA%\.bot13\
 
 ##Changelog
+###v 1.7B(#9)
+Now can work on several channels<br>
+Upgraded bandit saving algorythm<br>
+Upgraded !help<br>
+Upgraded !cmds<br>
+Upgraded bandit<br>
+Added Reactions
 ####v 1.6.2B
 Upgraded NickList : Now it can list users
 ####v 1.6.1B
