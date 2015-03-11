@@ -13,9 +13,9 @@ class SocialCommand
 			$list.update($server,c)
 			nl = $list.list
 			u2 = nl[Random.rand(nl.size)]
-			@parser.call(u,u2,c)
+			msg(@parser.call(u,u2),c)
 		elsif $list.search(a[0]) == true
-			@parser.call(u,a[0],c)
+			msg(@parser.call(u,a[1]),c)
 		else
 			Weechat.command($buf_pntr,"/notice #{u} There's no user '#{a[0]}' on this channel")
 		end
@@ -29,22 +29,22 @@ def addsocial(name,parser)
 end
 
 addsocial("!inflate", Proc.new{
-	|u1,u2,c|
-	msg("#{u1} has inflated #{u2}, and #{u2.upcase} has flown into the sky!",c)
+	|u1,u2|
+	return "#{u1} has inflated #{u2}, and #{u2.upcase} has flown into the sky!"
 })
 
 addsocial("!deflate", Proc.new{
-	|u1,u2,c|
-	msg("#{u1} has deflated #{u2}, and #{u2.lowercase} has hit to the ground!",c)
+	|u1,u2|
+	return "#{u1} has deflated #{u2}, and #{u2.lowercase} has hit to the ground!"
 })
 
 addsocial("!rotate", Proc.new{
-	|u1,u2,c|
-	msg("#{u1} has rotated #{u2}, and now #{u2} is #{u2.reverse}",c)
+	|u1,u2|
+	return "#{u1} has rotated #{u2}, and now #{u2} is #{u2.reverse}"
 })
 
 addsocial("!vodka", Proc.new{
-	|u1,u2,c|
+	|u1,u2|
 	vodka = [
 		"Stolichnaya",
 		"M9CHOu PY/\ET",
@@ -63,5 +63,5 @@ addsocial("!vodka", Proc.new{
 	]
 	ca = actions[Random.rand(actions.size)]
 	cd = vodka[Random.rand(vodka.size)]
-	msg("#{u1} gave #{u2} a bottle labeled \"#{cd}\". #{u2}#{ca}",c)
+	return "#{u1} has given #{u2} a bottle with label \"#{cd}\". #{u2}#{ca}"
 })

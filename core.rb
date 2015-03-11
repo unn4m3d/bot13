@@ -7,7 +7,7 @@
 		v 1.7B(#9) by unn4m3d
 		>Now can work on several channels
 		>Upgraded bandit saving algorythm
-		>Upgraded help
+		>Upgraded !help
 		>Upgraded !cmds
 		>Upgraded bandit
 		>Added Reactions
