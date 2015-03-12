@@ -1,6 +1,9 @@
 =begin
-	Social plugin 1.0 Alpha for Bot13 1.6.1
+	Social plugin 1.1 Alpha RUS for Bot13 1.7
 	By unn4m3d
+	Changelog:
+		v 1.1 Alpha RUS
+		>Translated it and added russian aliases
 =end
 
 class SocialCommand
@@ -43,25 +46,31 @@ addsocial("!rotate", Proc.new{
 	return "#{u1} has rotated #{u2}, and now #{u2} is #{u2.reverse}"
 })
 
-addsocial("!vodka", Proc.new{
+addsocial("!drink", Proc.new{
 	|u1,u2|
 	vodka = [
-		"Stolichnaya",
+		"Столичная",
 		"M9CHOu PY/\ET",
-		"Kalium cyanide. WAIT, OH SHI~",
-		"Belenkaya",
+		"Цианид калия. WAIT, OH SHI~",
+		"Беленькая",
 		"GitHub.IO",
-		"Alcohol 120%"
+		"Alcohol 120%",
+		"Произведено Геннадием Малаховым."
 	]
 	actions = [
-		"drinked it and falled asleep",
-		"drinked it and shouted, \"N00B!\"",
-		"drinked it and died. R.I.P",
-		"drinked it and shouted \"What's the fuck??!\"",
-		"drinked it and said \"git pull origin master\"",
-		"drinked it and lol'd"
+		"выпил и уснул",
+		"выпил и закричал : \"N00B!\"",
+		"выпил и сдох. R.I.P",
+		"выпил и воскликнул \"Што за срань тут творится??\"",
+		"выпил и набрал в терминале \"git pull origin master\"",
+		"выпил и MDR",
+		"поглядел на этикетку и отказался"
 	]
 	ca = actions[Random.rand(actions.size)]
 	cd = vodka[Random.rand(vodka.size)]
-	return "#{u1} has given #{u2} a bottle with label \"#{cd}\". #{u2}#{ca}"
+	return "#{u1} has given #{u2} a bottle with label \"#{cd}\". #{u2} #{ca}"
 })
+
+addalias("!напиток","")
+addalias("!напиток","")
+addalias("!напиток","")
