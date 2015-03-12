@@ -1,8 +1,8 @@
 =begin
-	Social plugin 1.1 Alpha RUS for Bot13 1.7
+	Social plugin 1.0.1 Alpha RUS for Bot13 1.7
 	By unn4m3d
 	Changelog:
-		v 1.1 Alpha RUS
+		v 1.0.1 Alpha RUS
 		>Translated it and added russian aliases
 =end
 
@@ -16,11 +16,11 @@ class SocialCommand
 			$list.update($server,c)
 			nl = $list.list
 			u2 = nl[Random.rand(nl.size)]
-			msg(@parser.call(u,u2),c)
+			@parser.call(u,u2)
 		elsif $list.search(a[0]) == true
-			msg(@parser.call(u,a[1]),c)
+			@parser.call(u,a[1])
 		else
-			Weechat.command($buf_pntr,"/notice #{u} There's no user '#{a[0]}' on this channel")
+			Weechat.command($buf_pntr,"/notice #{u} Нет такого пользователя '#{a[0]}'!")
 		end
 	end
 end
@@ -33,17 +33,17 @@ end
 
 addsocial("!inflate", Proc.new{
 	|u1,u2|
-	return "#{u1} has inflated #{u2}, and #{u2.upcase} has flown into the sky!"
+	msg("#{u1} надул #{u2}, и #{u2.upcase} улетел в небеса!",c)
 })
 
 addsocial("!deflate", Proc.new{
 	|u1,u2|
-	return "#{u1} has deflated #{u2}, and #{u2.lowercase} has hit to the ground!"
+	msg("#{u1} проткнул #{u2}, иголкой и #{u2.lowercase} шлепнулся на землю!",c)
 })
 
 addsocial("!rotate", Proc.new{
 	|u1,u2|
-	return "#{u1} has rotated #{u2}, and now #{u2} is #{u2.reverse}"
+	msg("#{u1} развернул #{u2}, и получилось #{u2.reverse}",c)
 })
 
 addsocial("!drink", Proc.new{
@@ -68,9 +68,10 @@ addsocial("!drink", Proc.new{
 	]
 	ca = actions[Random.rand(actions.size)]
 	cd = vodka[Random.rand(vodka.size)]
-	return "#{u1} has given #{u2} a bottle with label \"#{cd}\". #{u2} #{ca}"
+	msg("#{u1} вручил #{u2} бутылку с этикеткой \"#{cd}\". #{u2} #{ca}",c)
 })
 
-addalias("!напиток","")
-addalias("!напиток","")
-addalias("!напиток","")
+addalias("!напиток","!drink")
+addalias("!сдуть","!deflate")
+addalias("!надуть","!inflate")
+addalias("!развернуть","!rotate")
