@@ -1,6 +1,7 @@
 =begin
 	Russian Roulette Plugin 1.1 Alpha for Bot13 1.6.1
 	By unn4m3d
+	:::RUSSIAN TRANSLATION:::
 =end
 
 $rscore = {}
@@ -13,7 +14,7 @@ $timers = {}
 
 def roulette(user)
 	if Random.rand(6) == 0
-		msg("#{user}, you're dead!", $channel)
+		msg("БАХ! Ты прострелил себе висок, #{user}! R.I.P", $channel)
 		$rscore[user] = 0
 	else
 		if not $rscore[user]
@@ -21,7 +22,7 @@ def roulette(user)
 		end
 		sc = Random.rand($rscore[user] + 10)
 		$rscore[user] += sc
-		msg("#{user}, you're alive! LOL! You receive #{sc} points", $channel)
+		msg("Осечка, #{user}! Ты жив! Ты заработал #{sc} тугриков", $channel)
 	end
 	r_save
 end
@@ -95,25 +96,25 @@ def onload
 				i+=1
 			end
 			
-		elsif a[0] == "stat"
+		elsif a[0] == "stat" or a[0] == "стат"
 			if a[1] == nil
 				if $rscore[u]
-					msg("#{u} gained #{$rscore[u].to_s} points in RR", c)
+					msg("#{u} заработал #{$rscore[u].to_s} тугриков", c)
 				else
-					msg("I don't know you, #{u}",c)
+					msg("Я не знаю тебя, #{u}",c)
 				end
 			else
 				if $rscore[a[1]]
-					msg("#{a[1]} gained #{$rscore[a[1]].to_s} points in RR", c)
+					msg("#{a[1]} заработал #{$rscore[a[1]].to_s} тугриков", c)
 				else
-					msg("I don't know #{a[1]}",c)
+					msg("Я не знаю #{a[1]}",c)
 				end
 			end
 		else
 			if ($rscore[u] != nil and $rscore[u] > 0) or not $rscore[u]
 				roulette(u)
 			elsif $rscore[u] < 1
-				Weechat.command("","/notice #{u} You're dead!")
+				Weechat.command("","/notice #{u} Ты уже мертв, #{u}!")
 			end
 		end
 	},30)
@@ -130,7 +131,7 @@ def onload
 	addcmd("!buy", 0, Proc.new{
 		|a,u,c|
 		if $rscore[u] == nil
-			msg("Buy : You haven't RR vault, please play roulette",c)
+			msg("Buy :  У вас нет счета в рулетке",u)
 			return
 		end
 		if a.length == 2
@@ -147,7 +148,7 @@ def onload
 					end
 					$rscore[u] -= Integer(a[1])*$prices[a[0]]
 				else
-					msg("Buy : Insufficient funds, #{u}!",c)
+					msg("Buy : Недостаточно денег, #{u}!",c)
 				end
 			else
 				msg("Buy:Usage: !buy (voice|halfop) <time>",c)
@@ -160,6 +161,9 @@ def onload
 	if not File.exists?($home + "/.bot13/roulette.cfg")
 		r_save
 	end
+	addhelp("!рулетка", "Русская Рулетка",
+	"Usage : !roulette [(стат|stat) [user]]")
+	addalias("!рулетка", "!roulette")
 	r_load
 end
 
