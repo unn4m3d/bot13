@@ -2,14 +2,15 @@
 Bot for weechat written in Ruby
 
 ##How to launch
-/ruby load /path/to/your/loader.rb
+/ruby load /path/to/your/core.rb
 
 ##How to install
-add loader.rb into autoload
+####On Linux
+	Move papi.rb and plugins folder into ~/.bot13 folder
+####On Windows
+	Move papi.rb and plugins into %APPDATA%\.bot13\
 
 ##Changelog
-####v 1.7.1B
-Now loads with loader.rb
 ####v 1.7B
 Now can work on several channels<br>
 Upgraded bandit saving algorythm<br>

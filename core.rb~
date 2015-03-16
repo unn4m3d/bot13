@@ -58,7 +58,7 @@
 		>First release
 =end
 #Environment vars
-$channels = ["#th1rt3en"]
+$channels = ["#th1rt3en","#mapc"]
 $server = "irc.ircnet.ru"
 $buf_pntr = nil
 $works = false
