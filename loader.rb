@@ -6,6 +6,7 @@
 $home = Dir.chdir{|path| path}
 $repo = "https://github.com/unn4m3d/bot13.git"
 $origin = "master"
+$version = "1.7.2 Beta"
 
 class ConfList
 	attr_accessor:list
@@ -39,41 +40,26 @@ class ConfList
 	end
 end
 
-def dcopy(src,dest)
-	if not dest
-		Dir.mkdir(dest)
+def weechat_init
+	if not Dir.exists?($home + "/bot13/")
+		system("git clone #{$repo}")
 	end
-	for e in Dir.entries(src)
-		if e != "." and e != ".."
-			if File.directory?(e)
-				dcopy(src + "/" + e, dest + "/" + e)
-			else
-				File.copy(src + "/" + e, dest + "/" + e)
-			end
-		end
+
+	system("cd bot13 && git pull origin #{$origin}")
+
+	if not Dir.exists?($home + "/.bot13/")
+		Dir.mkdir($home + "/.bot13/")
 	end
-end	
+	
+	files = ["papi.rb","core.rb","plugins"]
 
-if not Dir.exists?($home + "/bot13/")
-	exec("git clone #{$repo}")
+	for f in files 
+		system("cp #{$home}/bot13/#{f}","#{$home}/.bot13/#{f}")
+	end
+
+	f = File.open("#{$home}/.bot13/core.rb")
+	s = f.readlines.join("\n")
+	f.close
+	eval(s)
+	
 end
-
-exec("cd bot13 && git pull origin #{$origin}")
-
-if not Dir.exists?($home + "/.bot13/")
-	Dir.mkdir($home + "/.bot13/")
-end
-
-files = ["papi.rb","core.rb"]
-folders=["plugins"]
-
-for f in files 
-	File.copy("#{$home}/bot13/#{f}","#{$home}/.bot13/#{f}")
-end
-
-for f in folders
-	dcopy("#{$home}/bot13/#{f}","#{$home}/.bot13/#{f}")
-end
-
-load "#{$home}/.bot13/core.rb"
-

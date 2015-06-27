@@ -1,26 +1,23 @@
 =begin
-	Social plugin 1.0.1 Alpha RUS for Bot13 1.7
+	Social plugin 1.0 Alpha for Bot13 1.6.1
 	By unn4m3d
-	Changelog:
-		v 1.0.1 Alpha RUS
-		>Translated it and added russian aliases
 =end
 
 class SocialCommand
-	attr_accessor:parser
+	attr_accessor:parser,:alias
 	def set(p)
 		@parser = p
 	end
 	def execute(a,u,c)
+		$list.update($server,c)
+		nl = $list.list
 		if not a[0]
-			$list.update($server,c)
-			nl = $list.list
 			u2 = nl[Random.rand(nl.size)]
-			@parser.call(u,u2)
+			@parser.call(u,u2,c)
 		elsif $list.search(a[0]) == true
-			@parser.call(u,a[1])
+			@parser.call(u,a[0],c)
 		else
-			Weechat.command($buf_pntr,"/notice #{u} Нет такого пользователя '#{a[0]}'!")
+			Weechat.command($buf_pntr,"/notice #{u} There's no user '#{a[0]}' on this channel")
 		end
 	end
 end
@@ -32,46 +29,39 @@ def addsocial(name,parser)
 end
 
 addsocial("!inflate", Proc.new{
-	|u1,u2|
-	msg("#{u1} надул #{u2}, и #{u2.upcase} улетел в небеса!",c)
+	|u1,u2,c|
+	msg("#{u1} has inflated #{u2}, and #{u2.upcase} has flown into the sky!",c)
 })
 
 addsocial("!deflate", Proc.new{
-	|u1,u2|
-	msg("#{u1} проткнул #{u2}, иголкой и #{u2.lowercase} шлепнулся на землю!",c)
+	|u1,u2,c|
+	msg("#{u1} has deflated #{u2}, and #{u2.downcase} has hit to the ground!",c)
 })
 
 addsocial("!rotate", Proc.new{
-	|u1,u2|
-	msg("#{u1} развернул #{u2}, и получилось #{u2.reverse}",c)
+	|u1,u2,c|
+	msg("#{u1} has rotated #{u2}, and now #{u2} is #{u2.reverse}",c)
 })
 
-addsocial("!drink", Proc.new{
-	|u1,u2|
+addsocial("!vodka", Proc.new{
+	|u1,u2,c|
 	vodka = [
-		"Столичная",
+		"Stolichnaya",
 		"M9CHOu PY/\ET",
-		"Цианид калия. WAIT, OH SHI~",
-		"Беленькая",
+		"Kalium cyanide. WAIT, OH SHI~",
+		"Belenkaya",
 		"GitHub.IO",
-		"Alcohol 120%",
-		"Произведено Геннадием Малаховым."
+		"Alcohol 120%"
 	]
 	actions = [
-		"выпил и уснул",
-		"выпил и закричал : \"N00B!\"",
-		"выпил и сдох. R.I.P",
-		"выпил и воскликнул \"Што за срань тут творится??\"",
-		"выпил и набрал в терминале \"git pull origin master\"",
-		"выпил и MDR",
-		"поглядел на этикетку и отказался"
+		"drinked it and falled asleep",
+		"drinked it and shouted, \"N00B!\"",
+		"drinked it and died. R.I.P",
+		"drinked it and shouted \"What's the fuck??!\"",
+		"drinked it and said \"git pull origin master\"",
+		"drinked it and lol'd"
 	]
 	ca = actions[Random.rand(actions.size)]
 	cd = vodka[Random.rand(vodka.size)]
-	msg("#{u1} вручил #{u2} бутылку с этикеткой \"#{cd}\". #{u2} #{ca}",c)
+	msg("#{u1} gave #{u2} a bottle labeled \"#{cd}\". #{u2} #{ca}",c)
 })
-
-addalias("!напиток","!drink")
-addalias("!сдуть","!deflate")
-addalias("!надуть","!inflate")
-addalias("!развернуть","!rotate")

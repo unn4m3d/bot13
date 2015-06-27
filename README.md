@@ -9,7 +9,8 @@ add loader.rb into autoload
 
 ##Changelog
 ####v 1.7.1B
-Now loads with loader.rb
+<s>Now loads with loader.rb</s><br>
+New help format
 ####v 1.7B
 Now can work on several channels<br>
 Upgraded bandit saving algorythm<br>

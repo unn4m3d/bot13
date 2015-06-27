@@ -1,10 +1,15 @@
 =begin
-	.::NOTE : This is version with russian memetic translation. There's no warranty with your mind::.
-	Bot13 v 1.7 Beta
+	Bot13 v 1.7.1 Beta
 	By S.Melnikov a.k.a. unn4m3d
 	License : GNU GPLv3
 	
 	Changelog:
+		v 1.7.1B(#10)
+		>New help format
+		>Colorized a bit
+		>Added help
+		>Fixed some bugs
+		
 		v 1.7B(#9) by unn4m3d
 		>Now can work on several channels
 		>Upgraded bandit saving algorythm
@@ -61,17 +66,19 @@
 $channels = ["#th1rt3en"]
 $server = "irc.ircnet.ru"
 $buf_pntr = nil
-$works = false
-$version = "1.7 Beta RUS"
+$works = true 
+$c = 3.chr
+$version = "1.7.1 Beta"
 $author = "unn4m3d"
 $home = Dir.chdir{|path| path} #Dirty hack!!! =)
 require $home + "/.bot13/papi"
 $bandits = {}
+$plugins = {}
 $msgs = {
-	"lose" => ["LOL!", "Лузер!", "Korean Random...", "I dunno why LOL", "Losers, losers everywhere", "kekeke"],
-	"win"  => ["Да вы мастер!","Congratulations! You are the WinRAR!!1","WHYYYY???"],
-	"lvlup"=> ["LVL UP =^_^=", "Level up!", "- величайший скрипт мира"],
-	"bot13"=> ["Bot-th1rt3en #{$version} by #{$author}", "Я зохаваю Галактику! Фхтагн!"],
+	"lose" => ["LOL!", "Loser!", "Korean Random...", "I dunno why LOL", "Losers, losers everywhere", "kekeke"],
+	"win"  => ["OMG OMG OMG","Congratulations! You are the WinRAR!!1","WHYYYY???"],
+	"lvlup"=> ["LVL UP =^_^=", "Level up!", "- better than Cthulhu"],
+	"bot13"=> ["Bot-th1rt3en #{$version} by #{$author}"],
 	"join" => ["LOL, `U` has joined!", "`U` is the best thing ever"]
 }
 $motd = "#MAPC is c00l!"
@@ -237,7 +244,7 @@ end
 
 def msg(msg,chan)
 	if chan == nil
-		chan = $channel
+		chan = $channels[0]
 	end
 	Weechat.command($buf_pntr, "/msg " + chan + " " + msg)
 end
@@ -253,7 +260,7 @@ class BotCommand
 	#
 	#@param func Proc object to execute on call 
 	#@param p Permission level to do that. Not implemented yet, please set to 0
-	attr_accessor :permlvl
+	attr_accessor :permlvl,:func,:name,:timeout,:alias
 	def set(func, p,name,t)
 		@func = func
 		@permlvl = p
@@ -269,12 +276,12 @@ class BotCommand
 	def execute(args,usr,chan)
 		if $cmdt[@name][usr] != nil
 			if $cmdt[@name][usr] + @timeout > Time.now
-				Weechat.command($buf_pntr,"/notice #{usr} У этой команды таймаут #{@timeout} секунд")
+				Weechat.command($buf_pntr,"/notice #{usr} This command has timeout #{@timeout}s")
 				return
 			end
 		end
 		if Permissions.get(usr) < @permlvl
-			Weechat.command($buf_pntr,"/notice #{usr} У вас нет прав запускать эту команду")
+			Weechat.command($buf_pntr,"/notice #{usr} You have not permissions. Required:#{@permlvl}. Available:#{Permissions.get(usr)}")
 			return
 		end
 		@func.call(args,usr,chan)
@@ -304,12 +311,14 @@ end
 def addcmd(name,perm,cmd,timeout)
 	$cmds[name] = BotCommand.new()
 	$cmds[name].set(cmd,perm,name,timeout)
+	$cmds[name].alias = nil
 	$cmds.rehash
 	$cmdt[name] = {}
 end
 
 def addalias(name,cmd)
 	$cmds[name] = $cmds[cmd]
+	$cmds[name].alias = cmd
 	$cmds.rehash
 	$cmdt[name] = {}
 end
@@ -386,13 +395,63 @@ def joincb(data,signal,sdata)
 end
 
 def addhelp(name,brief,help)
-		$cmdh[name] =  HelpPage.new(brief,help)
+	$cmdh[name] =  HelpPage.new(brief,help)
 end
 
+def aliases(cmd)
+	a = []
+	for k in $cmds.keys
+		if $cmds[k].alias == cmd
+			a.push(k)
+		end
+	end
+	return a
+end
 
+module LOCALE
+	RUS = 0
+	ENG = 1
+end
+
+class BotPlugin
+	attr_accessor:name,:version,:author,:locale,:desc,:license
+	def initialize(n,v,a,l,d,li)
+		@name = n
+		@version = v
+		@author = a
+		if l.class == "Integer"
+			@locale = l
+		else
+			if l == "RUS"
+				@locale = LOCALE::RUS
+			else
+				@locale = LOCALE::ENG
+			end 
+		end
+		@desc = d
+		@license = li
+	end
+	
+	def older?(v)
+		for i in (0...v.length)
+			if i < @version.length
+				if v[i].chr.to_i > @version[i].chr.to_i
+					return true
+				elsif v[i].chr.to_i < @version[i].chr.to_i
+					return false
+				end
+			end
+		end
+		return false
+	end
+end
+
+def register_plugin(n,v,a,l,d,li)
+	$plugins.push(BotPlugin.new(n,v,a,l,d,li))
+end
 
 def weechat_init
-	Weechat.register("Bot13", $author,$version, "GNU GPLv3", "Простой бот на Ruby","","cp-1251")
+	Weechat.register("Bot13", $author,$version, "GNU GPLv3", "Simple bot","","cp-1251")
 	$buf_pntr = Weechat.buffer_get_pointer(Weechat.current_buffer,"buf_pntr")
 	#Hooks
 	ch = Weechat.hook_command("dbot", "","","","","admcb","") #Command hook
@@ -402,7 +461,7 @@ def weechat_init
 	addcmd("!bot13",0,Proc.new{
 		|a,u,c| msg("Bot-Th1rt3en v" + $version + " by " + $author, c)
 	},10)
-	addhelp("!bot13","Выводит информацию о боте","")
+	addhelp("!bot13","Displays bot info",[])
 	$cmds.rehash()
 	addcmd("!cmds",0,Proc.new{
 		|a,u,c|
@@ -414,7 +473,7 @@ def weechat_init
 			msg(s,u)
 		end
 	},20)
-	addhelp("!cmds", "Lists commands","")
+	addhelp("!cmds", "Lists commands",[])
 	addcmd("!random", 0, Proc.new{
 		|a,u,c|
 		if a.length == 0
@@ -425,11 +484,11 @@ def weechat_init
 			msg((Integer(a[0])+ Random.rand(Integer(a[1]) - Integer(a[0]))).to_s,c)
 		end
 	},10)
-	addhelp("!random", "Выводит рандомное число",
-		"Usage : !random [a[,b]]
-		Without args, it displays random number from 0 to 9
-		With 1 arg, it displays number from 0 to a
-		With 2 args, it displays number from a to b")
+	addhelp("!random", "Displays random number",
+		["Usage : !random [a[,b]] \n",
+		"Without args, it displays random number from 0 to 9\n",
+		"With 1 arg, it displays number from 0 to a\n",
+		"With 2 args, it displays number from a to b"])
 	addcmd("!bandit", 0, Proc.new{
 		|a,u,c|
 		num = []
@@ -466,13 +525,16 @@ def weechat_init
 		end
 		msg(m,c)
 		
-		
 	},60)
+	
+	addhelp("!bandit","One-arm bandit",[])
 		
 	addcmd("!winners", 0, Proc.new{
 		|a,u,c|
 		b_show(c)
 	},10)
+		
+	addhelp("!winners", "Displays !bandit winners",[])
 		
 	addcmd("!motd", 0, Proc.new{
 		|a,u,c|
@@ -482,27 +544,34 @@ def weechat_init
 			msg($motd,c)
 		end
 	},10)
+	addhelp("!motd", "Shows or sets message of the day",
+		["Usage : !motd [<motd>]",
+		"If <motd> is set, then sets motd",
+		"Else, displays current motd"])
 	addcmd("!help", 0, Proc.new{
 		|a,u,c|
 		if a.length == 0
-			msg("=============HELP=============",u)
+			msg("#{$c}0,5=============[#{$c}5,0HELP#{$c}0,5]=============#{$c}",u)
+			cmda = {}
 			for k in $cmdh.keys
-				s = k + " - " + $cmdh[k].brief
-				msg(s,u)
+				msg("#{$c}0,5#{k+$c} - #{$cmdh[k].brief}",u)
 			end
-			msg("Введите !help <команда> для получения сведений об этой команде", u)
-			msg("==============================",u)
+			msg("Type #{$c}0,5!help <command>#{$c} for further info", u)
+			msg("#{$c}0,5===============================#{$c}",u)
 		else
-			msg("=============HELP=============",u)
+			msg("#{$c}0,5=============[#{$c}5,0HELP#{$c}0,5]=============#{$c}",u)
 			for p in a
 				if $cmdh[p]
 					msg(p + " - " + $cmdh[p].brief,u)
-					msg($cmdh[p].text,u)
+					for l in $cmdh[p].text
+						msg(l,u)
+					end	
+					msg("Aliases : #{$c}0,5#{aliases(p).join(",")+$c}",u)
 				else
-					msg(p + ": Нет справочной страницы",u)
+					msg(p + ": No help page",u)
 				end
 			end
-			msg("==============================",u)
+			msg("#{$c}0,5===============================#{$c}",u)
 		end
 	},60)
 		
@@ -510,10 +579,10 @@ def weechat_init
 		|a,u,c|
 		if a.length == 1 
 			if a[0] == "get"
-				Weechat.command($buf_pntr,"/notice #{u} У вас лвл #{$perms[u].to_s}")
+				Weechat.command($buf_pntr,"/notice #{u} You have level #{$perms[u].to_s}")
 			elsif a[0] == "show"
 				for k in $perms.keys()
-					msg(k + " " + $perms[k].to_s,c)
+					msg(k + " " + $perms[k].to_s,u)
 				end
 			end
 			
@@ -527,6 +596,13 @@ def weechat_init
 			end
 		end
 	},5)
+	addhelp("!perm","Permissions control",
+		[
+			"Usage : !perm(set [[<nick> ]<level>]|get|show)",
+			"!perm set <level> - sets you lvl <level>",
+			"!perm set <nick> <level> - sets user <nick> level <level>",
+			"!perm get - shows your level, !perm show - shows levels"
+		])
 	addalias("!бот13", "!bot13")
 	addalias("!рандом", "!random")
 	addalias("!бандит", "!bandit")
