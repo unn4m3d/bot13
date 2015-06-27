@@ -1,0 +1,22 @@
+=begin
+	Statistics
+=end
+
+$stat_root = "/var/www/html"
+$uses = {
+	"bandit" => true,
+	"roulette" => true
+}
+
+def stat_u
+	if $uses["bandit"]
+		s = "<table><tr><td>Number</td><td>Winner</td></tr><br>\n"
+		for k in $bandits.keys
+			s += "<tr><td>#{k.to_s*3}</td><td>#{$bandits[k]}</td></tr>\n"
+		end
+		s += "</table>"
+		f = File.open($stat_root + "/bandit.php","w")
+		f.write(s)
+		f.close
+	end
+end
