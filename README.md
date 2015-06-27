@@ -5,9 +5,9 @@ Bot for weechat written in Ruby
 /ruby load /path/to/your/core.rb
 
 ##How to install
-1.Copy `papi.rb`, `core.rb` and `plugins` folder into `$HOME/.bot13`
-2.Make sure there is no backup files (files with name ended with `~`) in `plugins`
-3.`cd $HOME/.weechat/ruby/autoload && ln -s $HOME/.bot13/core.rb` or move `core.rb` into `$HOME/.weechat/ruby/autoload`
+1. Copy `papi.rb`, `core.rb` and `plugins` folder into `$HOME/.bot13`
+2. Make sure there is no backup files (files with name ended with `~`) in `plugins`
+3. `cd $HOME/.weechat/ruby/autoload && ln -s $HOME/.bot13/core.rb` or move `core.rb` into `$HOME/.weechat/ruby/autoload`
 
 
 ##Changelog
