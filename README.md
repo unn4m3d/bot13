@@ -11,6 +11,11 @@ Bot <s>for weechat</s> written in Ruby<br>
 
 
 ##Changelog
+
+####v 2.0.1A (Independent)
+Fixed some minor bugs<br>
+`!help` and `!perms get` now can work in private chat
+
 ####v 2.0A (Independent)
 Now works outside of Weechat<br>
 **WARNING** Plugins don't work at the moment<br>

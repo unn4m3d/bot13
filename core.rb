@@ -1,9 +1,13 @@
 =begin
-	Bot13 v 1.7.1 Beta
+	Bot13 v 2.0.1 IA
 	By S.Melnikov a.k.a. unn4m3d
 	License : GNU GPLv3
 	
 	Changelog:
+		v 2.0.1 Independent Alpha #1
+		> Fixed some minor bugs
+		> Now can do some commands in private chat
+	
 		v 2.0 Independent Alpha #0
 		> Now can work outside of weechat
 		> Has not UI
@@ -74,13 +78,14 @@ $port = 6688 #UTF-8 Support
 $buf_pntr = nil
 $works = true 
 $c = 3.chr
-$version = "2.0 Independent Alpha"
+$version = "2.0.1 Independent Alpha"
 $author = "unn4m3d"
 $home = Dir.chdir{|path| path} #Dirty hack!!! =)
 require $home + "/.bot13/papi"
 $bandits = {}
 $plugins = {}
 $userdata = ["Bot13_test","Bot13"]
+$use_privmsgs = true
 $msgs = {
 	"lose" => ["LOL!", "Loser!", "Korean Random...", "I dunno why LOL", "Losers, losers everywhere", "kekeke"],
 	"win"  => ["OMG OMG OMG","Congratulations! You are the WinRAR!!1","WHYYYY???"],
@@ -298,6 +303,9 @@ def is_valid_chan(chan)
 			return true
 		end
 	end
+	if chan == $userdata[0] and $use_privmsgs == true then
+		return true
+	end
 	return false
 end
 
@@ -359,6 +367,15 @@ end
 
 def comcb(event)
 	ea = event.message.split(" ")
+	if event.from == $userdata[0] then
+		return
+	end
+	if not event.message.match(/^!.*$/) then
+		return
+	end
+	if not event.channel then 
+		event.channel = event.from 
+	end
 	if $cmds[ea[0]] != nil
 		$cmds[ea[0]].execute(ea[1..-1],event.from,event.channel)
 	else
