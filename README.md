@@ -1,5 +1,6 @@
-# bot13
-Bot for weechat written in Ruby
+# bot13 - independent version.
+Bot <s>for weechat</s> written in Ruby<br>
+**WARNING** This is not ready. I've just created the branch at the moment
 
 ##How to launch
 /ruby load /path/to/your/core.rb
