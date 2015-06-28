@@ -4,7 +4,11 @@
 	License : GNU GPLv3
 	
 	Changelog:
-		v 1.7.1B(#10)
+		v 2.0 Independent Alpha #0
+		> Now can work outside of weechat
+		> Has not UI
+	
+		v 1.7.1B(#10) by unn4m3d
 		>New help format
 		>Colorized a bit
 		>Added help
@@ -62,30 +66,66 @@
 		v 1.0A(#0) by unn4m3d
 		>First release
 =end
+require 'IRC'
 #Environment vars
 $channels = ["#th1rt3en"]
 $server = "irc.ircnet.ru"
+$port = 6688 #UTF-8 Support
 $buf_pntr = nil
 $works = true 
 $c = 3.chr
-$version = "1.7.1 Beta"
+$version = "2.0 Independent Alpha"
 $author = "unn4m3d"
 $home = Dir.chdir{|path| path} #Dirty hack!!! =)
 require $home + "/.bot13/papi"
 $bandits = {}
 $plugins = {}
+$userdata = ["Bot13_test","Bot13"]
 $msgs = {
 	"lose" => ["LOL!", "Loser!", "Korean Random...", "I dunno why LOL", "Losers, losers everywhere", "kekeke"],
 	"win"  => ["OMG OMG OMG","Congratulations! You are the WinRAR!!1","WHYYYY???"],
 	"lvlup"=> ["LVL UP =^_^=", "Level up!", "- better than Cthulhu"],
 	"bot13"=> ["Bot-th1rt3en #{$version} by #{$author}"],
-	"join" => ["LOL, `U` has joined!", "`U` is the best thing ever"]
+	"join" => ["LOL, `U` has joined!", "`U` is the best thing ever"],
+	"leave"=> ["Goodbye,`U`","All `U`'s base are belong to us!"],
 }
 $motd = "#MAPC is c00l!"
+$conn = nil
+$debug = []
 
 def getmsg(m)
 	return $msgs[m][Random.rand($msgs[m].size)]
 end
+
+class DebugMsg
+	attr_accessor:msg,:level
+	def initialize(m,l)
+		@msg = m
+		@level = l
+	end
+end
+
+def debug_msg(level,message)
+	$debug.push(DebugMsg.new(message,level))
+end
+
+def dfatal(msg)
+	debug_msg(3,msg)
+end
+
+def dcritical(msg)
+	debug_msg(2,msg)
+end
+
+def dwarning(msg)
+	debug_msg(1,msg)
+end
+
+def dinfo(msg)
+	debug_msg(0,msg)
+end
+
+
 
 #Bandit functions
 def b_save()
@@ -117,21 +157,6 @@ def b_show(chan)
 	msg("Bandits:",chan)
 	for k in $bandits.keys()
 		msg((k.to_s)*3 + " - " + $bandits[k],chan)
-	end
-end
-
-#Use only this to switch on/switch off bot
-#
-#@param s State to set
-def setstate(s)
-	if $works == false
-		buf_pntr = Weechat.buffer_get_pointer(Weechat.current_buffer,"buf_pntr")
-	end
-	$works = s
-	if $works
-		Weechat.print("", "Bot is ready!")
-	else
-		Weechat.print("", "Shutting down...")
 	end
 end
 
@@ -176,66 +201,8 @@ class Permissions
 end
 
 
-class NickList
-	attr_accessor :pntr,:lpntr,:chan,:serv
-	def update(s,c)
-		p = "irc"
-		name = "irc.#{s}.#{c}"
-		@pntr = Weechat.buffer_search(p,name)
-		@lpntr = Weechat.infolist_get("irc_nick","","#{s},#{c}")
-		@chan = c
-		@serv = s
-	end
-	def initialize(serv,chan)
-		p = "irc"
-		name = "irc.#{serv}.#{chan}"
-		@pntr = Weechat.buffer_search(p,name)
-		@lpntr = Weechat.infolist_get("irc_nick","","#{serv},#{chan}")
-		@chan = chan
-		@serv = serv
-	end
-	def list
-		l = []
-		p = Weechat.infolist_next(@lpntr)
-		while p and p != "" and p != 0
-			l.push(Weechat.infolist_string(@lpntr, "name"))
-			p = Weechat.infolist_next(@lpntr)
-			Weechat.print("", "p is #{p}")
-		end
-		Weechat.infolist_reset_item_cursor(@lpntr)
-		return l
-	end
-	def search(nick)
-		r = Weechat.nicklist_search_nick(@pntr,"",nick)
-		if r == ""
-			return false
-		else
-			return true
-		end
-	end
-end
+#NickList is deprecated
 $list = nil
-#String works
-class RMessage
-	attr_accessor:nick,:user,:host,:cmd,:msg,:chan
-	def parse(inmsg)
-		#Parses IRC message like :nick!user@host cmd :msg
-		@nick = inmsg.sub(/^:([^!]+)!.+$/){$1}
-		@msg = inmsg.sub(/^:[^:]+:/, "")
-		@chan = inmsg.sub(/^:[^:#]+(#.+)\ :.*$/){$1}
-		@user = inmsg.sub(/^:[^!]+!(.+)@.+\ :.*$/){$1}
-		Weechat.print("", "Parsed message : " + @msg + " from " + @nick + "(" + @user + ") on " + @chan + ".")
-	end
-end
-
-class JMessage < RMessage
-	def parse(inmsg)
-		super(inmsg)
-		@chan = inmsg.sub(/:[^:#]+:(#.+)/){$1}
-		Weechat.print("",@nick + "(" + @user + ") has joined " + @chan)
-	end
-end
-#End of string works
 
 #Function to say a message on a channel
 #
@@ -246,11 +213,11 @@ def msg(msg,chan)
 	if chan == nil
 		chan = $channels[0]
 	end
-	Weechat.command($buf_pntr, "/msg " + chan + " " + msg)
+	$conn.send_message(chan,msg)
 end
 
 def notice(msg,usr)
-	Weechat.command($buf_pntr,"/notice " + usr + " " + msg)
+	$conn.send_notice(usr,msg)
 end
 
 #Base class for commands
@@ -274,14 +241,15 @@ class BotCommand
 	#@param usr User that has sent the command
 	#@param chan Channel where the command has been received 
 	def execute(args,usr,chan)
+		dinfo("[INFO] Executing cmd #{name} with args [#{args.join(",")}]")
 		if $cmdt[@name][usr] != nil
 			if $cmdt[@name][usr] + @timeout > Time.now
-				Weechat.command($buf_pntr,"/notice #{usr} This command has timeout #{@timeout}s")
+				notice("This command has timeout #{@timeout}s",usr)
 				return
 			end
 		end
 		if Permissions.get(usr) < @permlvl
-			Weechat.command($buf_pntr,"/notice #{usr} You have not permissions. Required:#{@permlvl}. Available:#{Permissions.get(usr)}")
+			notice("You have not permissions. Required:#{@permlvl}. Available:#{Permissions.get(usr)}",usr)
 			return
 		end
 		@func.call(args,usr,chan)
@@ -323,15 +291,6 @@ def addalias(name,cmd)
 	$cmdt[name] = {}
 end
 
-def admcb(data,buffer,args)
-	if args == "on"
-		setstate(true)
-	elsif args == "off"
-		setstate(false)
-	end
-	Weechat.print($buf_pntr, "DBOT")
-	return Weechat::WEECHAT_RC_OK
-end
 
 def is_valid_chan(chan)
 	for c in $channels
@@ -340,58 +299,6 @@ def is_valid_chan(chan)
 		end
 	end
 	return false
-end
-
-def comcb(data,signal,sdata)
-	Weechat.print("","Received SDATA : " + sdata)
-	if not $works
-		return Weechat::WEECHAT_RC_OK
-	end
-	pmsg = RMessage.new()
-	pmsg.parse(sdata)
-	if not is_valid_chan(pmsg.chan) then
-		return Weechat::WEECHAT_RC_OK
-	end
-	for k in $cmds.keys()
-		if (pmsg.msg + " ")[0...k.length+1] == k + " "   
-			s = "Executing cmd " + k + " with args "
-			sp = []
-			if pmsg.msg[k.length+2] != nil
-				sp = pmsg.msg[k.length+1..-1].split(" ")
-			end
-			for e in sp
-				s += "'"
-				s += e
-				s += "', "
-			end
-			Weechat.print("",s)
-			$cmds[k].execute(pmsg.msg.split(" ")[1..-1],pmsg.nick,pmsg.chan)
-			break
-		end
-	end
-	for r in $rtab.keys
-		if pmsg.msg.match(r)
-			$rtab[r].call(pmsg.user,pmsg.chan,pmsg.msg)
-		end
-	end
-	return Weechat::WEECHAT_RC_OK
-end
-
-def motdcb(data,buffer,args)
-	$motd = args
-end
-
-def joincb(data,signal,sdata)
-	if $works
-		Weechat.print("","Received SDATA : " + sdata)
-		pmsg = JMessage.new
-		pmsg.parse(sdata)
-		if not is_valid_chan(pmsg.chan)
-			return Weechat::WEECHAT_RC_OK
-		end
-		msg(getmsg("join").gsub(/`U`/,pmsg.nick),pmsg.chan)
-	end
-	return Weechat::WEECHAT_RC_OK	
 end
 
 def addhelp(name,brief,help)
@@ -450,14 +357,75 @@ def register_plugin(n,v,a,l,d,li)
 	$plugins.push(BotPlugin.new(n,v,a,l,d,li))
 end
 
+def comcb(event)
+	ea = event.message.split(" ")
+	if $cmds[ea[0]] != nil
+		$cmds[ea[0]].execute(ea[1..-1],event.from,event.channel)
+	else
+		msg("No such command : #{ea[0]}, please type !help to list commands",event.from)
+	end
+end
+
 def weechat_init
-	Weechat.register("Bot13", $author,$version, "GNU GPLv3", "Simple bot","","cp-1251")
-	$buf_pntr = Weechat.buffer_get_pointer(Weechat.current_buffer,"buf_pntr")
-	#Hooks
-	ch = Weechat.hook_command("dbot", "","","","","admcb","") #Command hook
-	ch = Weechat.hook_command("sbm", "","","","","motdcb","") #Command hook
-	sh = Weechat.hook_signal("*,irc_in2_privmsg", "comcb","")
-	Weechat.hook_signal("*,irc_in2_join","joincb","")
+	$conn = IRC.new($userdata[0],$server,$port.to_s,$userdata[1])
+	puts "Connecting to #{$server}:#{$port.to_s} (#{$userdata[0]}!#{$userdata[1]})"
+	IRCEvent.add_callback('privmsg'){|e|
+		if is_valid_chan(e.channel)
+			comcb(e)
+		end
+		puts "Message from #{e.from} : \"#{e.message}\""
+	}
+	IRCEvent.add_callback('join'){
+		|e|
+		if is_valid_chan(e.channel)
+			msg(getmsg('join').gsub(/`U`/,e.from),e.channel)
+		end
+		puts "#{e.from} has joined #{e.channel}"
+	}
+	IRCEvent.add_callback('quit'){
+		|e|
+		if is_valid_chan(e.channel)
+			msg(getmsg('leave').gsub(/`U`/,e.from),e.channel)
+		end
+	}
+	IRCEvent.add_callback('endofmotd'){
+		|e|
+		for c in $channels
+			$conn.add_channel(c)
+			$conn.send_action(c,getmsg("lvlup"))
+		end
+		puts "Hello\n"
+	}
+	#$conn.start
+	
+	addcmd("!debug",5,Proc.new{
+		|a,u,c|
+		ll = 0
+		hl = 128
+		c = 10
+		if a.length == 1
+			c = a[0].to_i
+		elsif a.length == 2
+			c = a[0].to_i
+			ll = a[1].to_i
+			hl = a[1].to_i
+		elsif a.length == 3
+			c = a[0].to_i
+			ll = a[1].to_i
+			hl = a[2].to_i	
+		elsif a.length == 4
+			c = a[0].to_i
+			ll = a[1].to_i
+			hl = a[2].to_i
+			u = a[3]
+		end
+		for i in [($debug.length-c)..-1]
+			if $debug[i].level >= ll and $debug[i].level <= hl
+				msg($debug[i].msg,u)
+			end
+		end
+		
+	},1)
 	addcmd("!bot13",0,Proc.new{
 		|a,u,c| msg("Bot-Th1rt3en v" + $version + " by " + $author, c)
 	},10)
@@ -579,7 +547,7 @@ def weechat_init
 		|a,u,c|
 		if a.length == 1 
 			if a[0] == "get"
-				Weechat.command($buf_pntr,"/notice #{u} You have level #{$perms[u].to_s}")
+				$conn.send_notice(u,"You have level #{$perms[u].to_s}")
 			elsif a[0] == "show"
 				for k in $perms.keys()
 					msg(k + " " + $perms[k].to_s,u)
@@ -622,7 +590,9 @@ def weechat_init
 	if not Dir.exists?($home + "/.bot13/plugins/")
 		Dir.mkdir($home + "/.bot13/plugins")
 	end
-	$list = NickList.new($server,$channel)
-	papiinit
-	Weechat.command($buf_pntr,"/me " + getmsg("lvlup"))
+	#papiinit	
 end
+
+weechat_init
+
+$conn.start

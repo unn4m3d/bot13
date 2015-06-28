@@ -3,15 +3,20 @@ Bot <s>for weechat</s> written in Ruby<br>
 **WARNING** This is not ready. I've just created the branch at the moment
 
 ##How to launch
-/ruby load /path/to/your/core.rb
+`cd /path/to/your/bot13/ && ruby ./core.rb`
 
 ##How to install
 1. Copy `papi.rb`, `core.rb` and `plugins` folder into `$HOME/.bot13`
 2. Make sure there is no backup files (files with name ended with `~`) in `plugins`
-3. `cd $HOME/.weechat/ruby/autoload && ln -s $HOME/.bot13/core.rb` or move `core.rb` into `$HOME/.weechat/ruby/autoload`
 
 
 ##Changelog
+####v 2.0A (Independent)
+Now works outside of Weechat<br>
+**WARNING** Plugins don't work at the moment<br>
+**WARNING** NickList is deleted now<br>
+New command : `!debug [<count>[ (<level>|<lowlevel> <highlevel>)[ <target>]]]`
+
 ####v 1.7.1B
 <s>Now loads with loader.rb</s><br>
 New help format
@@ -46,8 +51,8 @@ Added random messages
 ####v 1.2A
 New bandit algorythm<br>
 Fixed a bug that passed username instead of nick in command args
-####v 1.1A
-New commands : `!cmds`, `!random [a[,b]]`, `!bandit`, `!winners`<br>
+####v 1.1A 
+New commands : `!cmds`, `!random [a[ b]]`, `!bandit`, `!winners`<br>
 Upgraded parser : now reads correctly username,channel and special symbols
 ####v 1.0A
 Initial release
