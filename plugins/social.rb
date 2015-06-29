@@ -1,6 +1,14 @@
 =begin
-	Social plugin 1.0 Alpha for Bot13 1.6.1
+	Social plugin 1.1 Beta for Bot13 2.0.3
 	By unn4m3d
+	
+	Changelog:
+	v 1.1 Beta [2.0.3]
+	>Fixed for Independent Alpha
+	>Upgraded !vodka
+	
+	v 1.0 Alpha [1.6.2]
+	>Initial release
 =end
 
 class SocialCommand
@@ -17,7 +25,7 @@ class SocialCommand
 		elsif $list.search(a[0]) == true
 			@parser.call(u,a[0],c)
 		else
-			Weechat.command($buf_pntr,"/notice #{u} There's no user '#{a[0]}' on this channel")
+			notice("There's no user '#{a[0]}' on this channel",u)
 		end
 	end
 end
@@ -40,7 +48,7 @@ addsocial("!deflate", Proc.new{
 
 addsocial("!rotate", Proc.new{
 	|u1,u2,c|
-	msg("#{u1} has rotated #{u2}, and now #{u2} is #{u2.reverse}",c)
+	msg("#{u1} has rotated #{u2}, and now #{u2} is known as #{u2.reverse}",c)
 })
 
 addsocial("!vodka", Proc.new{
@@ -51,7 +59,8 @@ addsocial("!vodka", Proc.new{
 		"Kalium cyanide. WAIT, OH SHI~",
 		"Belenkaya",
 		"GitHub.IO",
-		"Alcohol 120%"
+		"Alcohol 120%",
+		"vodka-1.0.0-amd64.deb",
 	]
 	actions = [
 		"drinked it and falled asleep",
@@ -59,9 +68,12 @@ addsocial("!vodka", Proc.new{
 		"drinked it and died. R.I.P",
 		"drinked it and shouted \"What's the fuck??!\"",
 		"drinked it and said \"git pull origin master\"",
-		"drinked it and lol'd"
+		"drinked it and lol'd",
+		"didn't drink it because of missing dependencies 'libalcohol-dev' and 'libglass-dev'"
 	]
 	ca = actions[Random.rand(actions.size)]
 	cd = vodka[Random.rand(vodka.size)]
 	msg("#{u1} gave #{u2} a bottle labeled \"#{cd}\". #{u2} #{ca}",c)
 })
+
+register_plugin("Social","1.1","unn4m3d","ENG","Some commands","GNU GPLv3")

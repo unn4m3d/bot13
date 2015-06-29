@@ -1,19 +1,23 @@
 =begin
-	Bot13 v 2.0.1 IA
+	Bot13 v 2.0.3A
 	By S.Melnikov a.k.a. unn4m3d
 	License : GNU GPLv3
 	
 	Changelog:
-		v 2.0.2 Independent Alpha #2
+		v 2.0.3A #3
+		>Added !restart command
+		>Colorized !bandit 
+	
+		v 2.0.2A #2
 		> Splitted API and Core
 		> Documented API
 		> Done NickList 
 	
-		v 2.0.1 Independent Alpha #1
+		v 2.0.1A #1
 		> Fixed some minor bugs
 		> Now can do some commands in private chat
 	
-		v 2.0 Independent Alpha #0
+		v 2.0A #0
 		> Now can work outside of weechat
 		> Has not UI
 	
@@ -77,7 +81,7 @@
 =end
 require 'IRC'
 #Environment vars
-$channels = ["#th1rt3en"]
+$channels = ["#th1rt3en","#mapc"]
 $server = "irc.ircnet.ru"
 $port = 6688 #UTF-8 Support
 $home = Dir.chdir{|path| path} #Dirty hack!!! =)
@@ -130,7 +134,7 @@ def weechat_init
 			$conn.add_channel(c)
 			$conn.send_action(c,getmsg("lvlup"))
 		end
-		puts "Hello\n"
+		puts "Connected succesfully"
 	}
 	IRCEvent.add_callback('353'){ #NAMES Reply
 		|e|
@@ -169,6 +173,9 @@ def weechat_init
 	addcmd("!bot13",0,Proc.new{
 		|a,u,c| msg("Bot-Th1rt3en v" + $version + " by " + $author, c)
 	},10)
+	addcmd("!restart",6,Proc.new{
+		|a,u,c| restart
+	},10)
 	addhelp("!bot13","Displays bot info",[])
 	$cmds.rehash()
 	addcmd("!cmds",0,Proc.new{
@@ -201,11 +208,12 @@ def weechat_init
 		|a,u,c|
 		num = []
 		num[0] = Random.rand(10)
-		msg(">" + num[0].to_s + "--<",c)
+		msg("#{$c}8,9[" + num[0].to_s + "|-|-]",c)
 		num[1] = Random.rand(10)
-		msg(">" + num[0].to_s + num[1].to_s + "-<",c)
+		msg("#{$c}8,9[" + num.join("|") + "|-]",c)
 		num[2] = Random.rand(10)
-		m = ">" + num.join + "<"
+		m = "#{$c}8,9[" + num.join("|") + "]#{$c}"
+		puts num.join
 		if num[1] == num[0] and num[1] == num[2]
 			m += " " + getmsg("win")
 			b_set(num[0],u)
@@ -213,7 +221,7 @@ def weechat_init
 			if num[1] != num[2] and num[1] != num[0] and num[0] != num[2]
 					m += " " + getmsg("lose")
 			else
-				m += " Второй шанс"
+				m += " Second chance"
 				msg(m,c)
 				if num[1] == num[2]
 					num[0] = Random.rand(10)
@@ -222,7 +230,7 @@ def weechat_init
 				elsif num[0] == num[1]
 					num[2] = Random.rand(10)
 				end
-				m = ">" + num.join + "< "
+				m = "#{$c}8,9[" + num.join("|") + "]#{$c} "
 				if num[1] == num[0] and num[1] == num[2]
 					m += getmsg("win")
 					b_set(num[0],u)
@@ -333,6 +341,17 @@ def weechat_init
 	#papiinit	
 end
 
+def uninit
+	IRCConnection.quit
+end
+
+def restart
+	uninit
+	Kernel.exec("ruby #{__FILE__}")
+end
+
+dinfo("[INFO] Starting...")
 weechat_init
+dinfo("[INFO] Started successfully")
 
 $conn.start

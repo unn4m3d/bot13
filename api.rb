@@ -4,7 +4,7 @@
 #@author unn4m3d
 
 $c = 3.chr
-$version = "2.0.1 Independent Alpha"
+$version = "2.0.2 Independent Alpha"
 $author = "unn4m3d"
 require $home + "/.bot13/papi"
 $bandits = {}
