@@ -338,7 +338,7 @@ def weechat_init
 	if not Dir.exists?($home + "/.bot13/plugins/")
 		Dir.mkdir($home + "/.bot13/plugins")
 	end
-	#papiinit	
+	papiinit	
 end
 
 def uninit

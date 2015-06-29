@@ -1,20 +1,20 @@
 =begin
 	Games Plugin 1.1 Alpha for Bot13 1.6.1
 	By unn4m3d
-	:::RUSSIAN TRANSLATION:::
+	
 =end
 
 $rscore = {}
 $prices = {
 	"voice" => 250,
 	"halfop" => 1000,
-	"perm" => 500
+	"perm" => 500,
 }
 $timers = {}
 
 def roulette(user)
 	if Random.rand(6) == 0
-		msg("БАХ! Ты прострелил себе висок, #{user}! R.I.P", $channel)
+		msg("BANG, #{user}! R.I.P", $channel)
 		$rscore[user] = 0
 	else
 		if not $rscore[user]
@@ -22,7 +22,7 @@ def roulette(user)
 		end
 		sc = Random.rand($rscore[user] + 10)
 		$rscore[user] += sc
-		msg("Осечка, #{user}! Ты жив! Ты заработал #{sc} тугриков", $channel)
+		msg("Click, #{user}! You're still alive! You gained #{sc} pounds", $channel)
 	end
 	r_save
 end
@@ -159,7 +159,12 @@ def bt(u1,u2,c)
 		$battle[u1].exp += c_e
 		$battle[u1].lvl += c_l
 	elsif h2 > 0
-		
+		c_f = (1.5*gt(u1).lvl).ceil
+		c_e = (1.5*((gt(u1).lvl-gt(u2).lvl).abs)+1).ceil
+		c_l =(e/10).floor > gt(u1).lvl ? 1 : 0
+		$battle[u2].fus += c_f
+		$battle[u2].exp += c_e
+		$battle[u2].lvl += c_l
 	else
 		msg("Draw!",c)
 	end
@@ -265,13 +270,25 @@ def onload
 			msg("Buy:Usage: !buy (voice|halfop|perm) time",c)
 		end
 	},1)
+	
+	addcmd("!fight",0,Proc.new{
+		|a,u,c|
+		usrs = NickList.new(c).list
+		u2 = usrs[Random.rand(usrs.length)]
+		bt(u,u2,c)
+		bt_save
+	},120)
 	if not File.exists?($home + "/.bot13/roulette.cfg")
 		r_save
+	end
+	if not File.exists?($home + "/.bot13/roulette.cfg")
+		bt_save
 	end
 	addhelp("!рулетка", "Русская Рулетка",
 	["Usage : !roulette [(стат|stat) [user]]"])
 	addalias("!рулетка", "!roulette")
 	r_load
+	bt_load
 	register_plugin("GameZZ","1.1","unn4m3d",LOCALE::RUS,"Games for Bot13","GNU GPLv3")
 end
 
