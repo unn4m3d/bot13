@@ -10,6 +10,10 @@ Bot <s>for weechat</s> written in Ruby<br>
 
 
 ##Changelog
+####v 2.0.3A (Independent)
+Colorized Bandit<br>
+Added `!restart` command
+
 ####v 2.0.2A (Independent)
 Fixed NickList<br>
 Documented API<br>
