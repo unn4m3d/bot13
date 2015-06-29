@@ -1,5 +1,6 @@
-# bot13 - independent version.
+# bot13 - [Telegram](http://telegram.org) version.
 Bot <s>for weechat</s> written in Ruby<br>
+**WARNING** This is not ready, I've just created the branch
 
 ##How to launch
 `cd /path/to/your/bot13/ && ruby ./core.rb`
