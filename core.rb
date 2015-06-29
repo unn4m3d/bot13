@@ -4,6 +4,11 @@
 	License : GNU GPLv3
 	
 	Changelog:
+		v 2.0.2 Independent Alpha #2
+		> Splitted API and Core
+		> Documented API
+		> Done NickList 
+	
 		v 2.0.1 Independent Alpha #1
 		> Fixed some minor bugs
 		> Now can do some commands in private chat
@@ -75,295 +80,9 @@ require 'IRC'
 $channels = ["#th1rt3en"]
 $server = "irc.ircnet.ru"
 $port = 6688 #UTF-8 Support
-$buf_pntr = nil
-$works = true 
-$c = 3.chr
-$version = "2.0.1 Independent Alpha"
-$author = "unn4m3d"
 $home = Dir.chdir{|path| path} #Dirty hack!!! =)
-require $home + "/.bot13/papi"
-$bandits = {}
-$plugins = {}
-$userdata = ["Bot13_test","Bot13"]
-$use_privmsgs = true
-$msgs = {
-	"lose" => ["LOL!", "Loser!", "Korean Random...", "I dunno why LOL", "Losers, losers everywhere", "kekeke"],
-	"win"  => ["OMG OMG OMG","Congratulations! You are the WinRAR!!1","WHYYYY???"],
-	"lvlup"=> ["LVL UP =^_^=", "Level up!", "- better than Cthulhu"],
-	"bot13"=> ["Bot-th1rt3en #{$version} by #{$author}"],
-	"join" => ["LOL, `U` has joined!", "`U` is the best thing ever"],
-	"leave"=> ["Goodbye,`U`","All `U`'s base are belong to us!"],
-}
-$motd = "#MAPC is c00l!"
-$conn = nil
-$debug = []
+require $home + "/.bot13/api"
 
-def getmsg(m)
-	return $msgs[m][Random.rand($msgs[m].size)]
-end
-
-class DebugMsg
-	attr_accessor:msg,:level
-	def initialize(m,l)
-		@msg = m
-		@level = l
-	end
-end
-
-def debug_msg(level,message)
-	$debug.push(DebugMsg.new(message,level))
-end
-
-def dfatal(msg)
-	debug_msg(3,msg)
-end
-
-def dcritical(msg)
-	debug_msg(2,msg)
-end
-
-def dwarning(msg)
-	debug_msg(1,msg)
-end
-
-def dinfo(msg)
-	debug_msg(0,msg)
-end
-
-
-
-#Bandit functions
-def b_save()
-	f = File.new($home + "/.bot13/bandit.cfg", "w")
-	for k in $bandits.keys() 
-		f.write(k.to_s + " " + $bandits[k].to_s + "\n") 
-	end
-	f.close()
-end
-
-def b_load()
-	f = File.new($home + "/.bot13/bandit.cfg", "r")
-	while not f.eof?
-			s = f.gets()
-			if s == nil or s == ""
-				next
-			end
-			$bandits[s[0..1].to_i] = s[2..-1]
-	end
-	f.close()
-end
-
-def b_set(num, name)
-	$bandits[num] = name
-	b_save()
-end
-
-def b_show(chan)
-	msg("Bandits:",chan)
-	for k in $bandits.keys()
-		msg((k.to_s)*3 + " - " + $bandits[k],chan)
-	end
-end
-
-$perms = {}
-class Permissions
-	def self.set(nick,lvl)
-		$perms[nick] = lvl
-		self.save()
-	end
-
-	def self.load()
-		f = File.open($home + "/.bot13/perms.cfg")
-		while not f.eof?
-			s = f.gets.split(" ")
-			$perms[s[0]] = s[1].to_i
-		end
-		f.close
-	end
-
-	def self.save()
-		if not $perms[".default"]
-			$perms[".default"] = 0
-		end
-		f = File.open($home + "/.bot13/perms.cfg","w")
-		for k in $perms.keys()
-			f.write(k + " " + $perms[k].to_s + "\n") 
-		end
-		f.close
-	end
-
-	def self.set_default(lvl)
-		self.set(".default",lvl)
-	end
-
-	def self.get(name)
-		if $perms[name]
-			return $perms[name]
-		else
-			return $perms[".default"]
-		end
-	end
-end
-
-
-#NickList is deprecated
-$list = nil
-
-#Function to say a message on a channel
-#
-#@param msg Message
-#@param chan Channel
-
-def msg(msg,chan)
-	if chan == nil
-		chan = $channels[0]
-	end
-	$conn.send_message(chan,msg)
-end
-
-def notice(msg,usr)
-	$conn.send_notice(usr,msg)
-end
-
-#Base class for commands
-
-class BotCommand
-	#Basic constructor
-	#
-	#@param func Proc object to execute on call 
-	#@param p Permission level to do that. Not implemented yet, please set to 0
-	attr_accessor :permlvl,:func,:name,:timeout,:alias
-	def set(func, p,name,t)
-		@func = func
-		@permlvl = p
-		@name = name
-		@timeout = t
-	end
-	
-	#Basic entrypoint
-	#
-	#@param args Arguments
-	#@param usr User that has sent the command
-	#@param chan Channel where the command has been received 
-	def execute(args,usr,chan)
-		dinfo("[INFO] Executing cmd #{name} with args [#{args.join(",")}]")
-		if $cmdt[@name][usr] != nil
-			if $cmdt[@name][usr] + @timeout > Time.now
-				notice("This command has timeout #{@timeout}s",usr)
-				return
-			end
-		end
-		if Permissions.get(usr) < @permlvl
-			notice("You have not permissions. Required:#{@permlvl}. Available:#{Permissions.get(usr)}",usr)
-			return
-		end
-		@func.call(args,usr,chan)
-		$cmdt[@name][usr] = Time.now
-	end
-end
-
-class HelpPage
-	attr_accessor:brief,:text
-	def initialize(b,t)
-		@brief = b
-		@text = t
-	end
-end
-
-$cmds = {}
-$cmdt = {}
-$cmdh = {}
-$rtab = {}
-
-def addreact(regexps,func)
-	for r in regexps
-		$rtab[r] = func
-	end
-end
-
-def addcmd(name,perm,cmd,timeout)
-	$cmds[name] = BotCommand.new()
-	$cmds[name].set(cmd,perm,name,timeout)
-	$cmds[name].alias = nil
-	$cmds.rehash
-	$cmdt[name] = {}
-end
-
-def addalias(name,cmd)
-	$cmds[name] = $cmds[cmd]
-	$cmds[name].alias = cmd
-	$cmds.rehash
-	$cmdt[name] = {}
-end
-
-
-def is_valid_chan(chan)
-	for c in $channels
-		if chan == c
-			return true
-		end
-	end
-	if chan == $userdata[0] and $use_privmsgs == true then
-		return true
-	end
-	return false
-end
-
-def addhelp(name,brief,help)
-	$cmdh[name] =  HelpPage.new(brief,help)
-end
-
-def aliases(cmd)
-	a = []
-	for k in $cmds.keys
-		if $cmds[k].alias == cmd
-			a.push(k)
-		end
-	end
-	return a
-end
-
-module LOCALE
-	RUS = 0
-	ENG = 1
-end
-
-class BotPlugin
-	attr_accessor:name,:version,:author,:locale,:desc,:license
-	def initialize(n,v,a,l,d,li)
-		@name = n
-		@version = v
-		@author = a
-		if l.class == "Integer"
-			@locale = l
-		else
-			if l == "RUS"
-				@locale = LOCALE::RUS
-			else
-				@locale = LOCALE::ENG
-			end 
-		end
-		@desc = d
-		@license = li
-	end
-	
-	def older?(v)
-		for i in (0...v.length)
-			if i < @version.length
-				if v[i].chr.to_i > @version[i].chr.to_i
-					return true
-				elsif v[i].chr.to_i < @version[i].chr.to_i
-					return false
-				end
-			end
-		end
-		return false
-	end
-end
-
-def register_plugin(n,v,a,l,d,li)
-	$plugins.push(BotPlugin.new(n,v,a,l,d,li))
-end
 
 def comcb(event)
 	ea = event.message.split(" ")
@@ -412,6 +131,10 @@ def weechat_init
 			$conn.send_action(c,getmsg("lvlup"))
 		end
 		puts "Hello\n"
+	}
+	IRCEvent.add_callback('353'){ #NAMES Reply
+		|e|
+		$udata = e.message
 	}
 	#$conn.start
 	

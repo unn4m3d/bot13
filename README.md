@@ -1,16 +1,19 @@
 # bot13 - independent version.
 Bot <s>for weechat</s> written in Ruby<br>
-**WARNING** This is not ready. I've just created the branch at the moment
 
 ##How to launch
 `cd /path/to/your/bot13/ && ruby ./core.rb`
 
 ##How to install
-1. Copy `papi.rb`, `core.rb` and `plugins` folder into `$HOME/.bot13`
+1. Copy `papi.rb`, `core.rb`, `api.rb` and `plugins` folder into `$HOME/.bot13`
 2. Make sure there is no backup files (files with name ended with `~`) in `plugins`
 
 
 ##Changelog
+####v 2.0.2A (Independent)
+Fixed NickList<br>
+Documented API<br>
+Splitted API and Core 
 
 ####v 2.0.1A (Independent)
 Fixed some minor bugs<br>
