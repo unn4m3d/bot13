@@ -6,6 +6,14 @@ Bot for <s>weechat</s> [Telegram](https://telegram.org) written in Ruby<br>
 
 ##How to install
 1. Copy `tgapi.rb`, `core.rb`, `api.rb`  folder into `$HOME/.bot13_telegram`
+2. Create file `$HOME/.bot13_telegram` and write into it
+```json
+{
+	"token" : <token>,
+	"chats" : [<chatid1>,<chatid2>,...]
+}
+```
+You can get token [here](https://telegram.me/BotFather) or use ready config.json in this repo
 
 
 ##Changelog
