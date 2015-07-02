@@ -3,9 +3,17 @@
 	v 1.0
 =end
 require 'net/http'
+require 'curb'
 require 'json'
 require 'timers' #gem install timers
 require 'uri'
+$imgmime = {
+	".png" => "image/png",
+	".gif" => "image/gif",
+	".jpg" => "image/jpeg",
+	".jpeg" => "image/jpeg"
+}
+
 
 module TgAPI
 	
@@ -36,7 +44,7 @@ module TgAPI
 		attr_reader:new_chat_title,:new_chat_photo,:delete_chat_photo,:group_chat_created
 		attr_reader:source
 		def initialize(j)
-			puts j.to_s
+			#puts j.to_s
 			@source = j
 			@message_id = j["message_id"]
 			@from = User.new(j["from"])
@@ -78,12 +86,13 @@ module TgAPI
 		def query(func,args={})
 			uri = URI("https://api.telegram.org/bot#{@token}/#{func}")
 			uri.query = URI.encode_www_form(args)
-			puts "[INFO] Query : #{uri.to_s}"
+			puts "[INFO] Query : #{uri.to_s}" unless func.match(/^getUpdates.*$/i)
 			r = Net::HTTP.get_response(uri)
 			j = JSON.parse(r.body)
 			raise Exception.new(j) unless j["ok"]
 			return j
 		end
+		
 		def initialize(t)
 			@token = t
 			@handlers = []
@@ -115,6 +124,7 @@ module TgAPI
 		end
 		
 		def addhandler(h)
+			puts "[INFO] Handler registered"
 			r = @handlers.length
 			@handlers.push(h)
 			return r
@@ -127,6 +137,19 @@ module TgAPI
 			params["reply_markup"] = rmu.to_json if rmu
 			params.rehash
 			return query("sendMessage",params)
+		end
+		
+		def sendPhoto(chat_id,file,caption=nil,rtmi=nil,rmu=nil)
+			sendChatAction(chat_id,"upload_photo")
+			puts "[INFO] Uploading #{file}"
+			c = Curl::Easy.new("https://api.telegram.org/bot#{@token}/sendPhoto")
+			c.multipart_form_post = true
+			c.http_post(Curl::PostField.content('chat_id',chat_id.to_s),Curl::PostField.file('photo',file){IO.read(file)})
+			return JSON.parse(c.body_str)
+		end
+		
+		def sendChatAction(chat_id,action)
+			return query("sendChatAction",{"chat_id"=>chat_id,"action"=>action})
 		end
 		
 		def update

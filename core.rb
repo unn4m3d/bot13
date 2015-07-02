@@ -1,12 +1,19 @@
 =begin
-	Bot13 v 3.0 TA (Telegram version)
+	Bot13 v 3.0.1 TA (Telegram Edition)
 	By S.Melnikov a.k.a. unn4m3d
 	License : GNU GPLv3
 	
 	Changelog:
+		v 3.0.2 TA
+		> Implemented PAPI v 2.0
+		> Upgraded TgAPI
+	
+		v 3.0.1 TA
+		> Added /help
+		> No answers printed on getUpdates<br>
+	
 		v 3.0TA
 		> Refactored for Telegram
-		
 	
 		v 2.0.3IA #3
 		>Added !restart command
@@ -85,19 +92,20 @@
 =end
 #Environment vars
 $home = Dir.chdir{|path| path} #Dirty hack!!! =)
-$cid = "-11333160"
+$cid = nil
 $rf = {
-	"cfg"=>$home+"/.bot13_telegram/config.json",
-	"pmc"=>$home+"/.bot13_telegram/perms.cfg",
-	"api"=>$home+"/.bot13_telegram/api.rb",
-	"tga"=>$home+"/.bot13_telegram/tgapi.rb"
+	"cfg"=>"config.json",
+	"pmc"=>"perms.cfg",
+	"api"=>"api.rb",
+	"tga"=>"tgapi.rb",
+	"pla"=>"papi.rb",
 }
 def checkfile(file,dt = "",&h)
 	unless File.exists?(file)
 		if block_given?
 			yield file
 		else
-			puts "[WARNING] #{file} is missing, initializing it with `#{dt}`"
+			dwarning "[WARNING] #{file} is missing, initializing it with `#{dt}`"
 			f = File.open(file,"w")
 			f.write(dt)
 			f.close
@@ -105,34 +113,36 @@ def checkfile(file,dt = "",&h)
 	end
 end
 
-checkfile($home+"/.bot13_telegram"){
-	|f|
-	puts "[CRITICAL] System dir #{f} is missing!"
-	Dir.mkdir(f)
-}
-
 checkfile($rf["tga"]){
 	|f|
-	puts "[FATAL] API file #{f} is missing!"
-	Kernel.exec("echo Halted")
+	dfatal "[FATAL] API file #{f} is missing!"
 }
 checkfile($rf["api"]){
 	|f|
-	puts "[FATAL] API file #{f} is missing!"
-	Kernel.exec("echo Halted")
+	dfatal "[FATAL] API file #{f} is missing!"
 }
-require $home + "/.bot13_telegram/tgapi"
-require $home + "/.bot13_telegram/api"
+require_relative "tgapi"
+require_relative "api"
+$plugins_disabled = false
+checkfile($rf["pla"]){
+	|f|
+	dcritical "[CRITICAL] Plugin loader `#{f}` is missing! Plugins are disabled"
+	$plugins_disabled = true
+}
+_home = $home
+require_relative "papi" unless $plugins_disabled
+$home = _home
 
 def msgcb(u)
 	if u.update_id.to_i > $lid
-		puts "[INFO] Parsing msg ID #{u.update_id.to_s} : #{u.message.text}"
+		dinfo "[INFO] Parsing msg ID #{u.update_id.to_s} : #{u.message.text}"
 		return unless u.message.text
 		$lid = u.update_id
-		if u.message.text.match(/^[!\/].+$/) then
+		if u.message.text.match(/^\/.+$/) then
 			#If the message is command
-			cmd = u.message.text.sub(/^[!\/]([^\s]+).*$/){$1}
+			cmd = u.message.text.sub(/^\/([^\s]+).*$/){$1}
 			args = u.message.text.split(" ")[1..-1]
+			puts "[INFO] Args : #{args.join " "}"
 			if $cmds[cmd] then
 				$cmds[cmd].execute(args,u.message)
 			elsif $cmds["!"+cmd] then
@@ -140,7 +150,7 @@ def msgcb(u)
 			elsif $cmds["/"+cmd] then
 				$cmds["/"+cmd].execute(args,u.message)
 			else
-				puts "[WARNING] No such command : #{cmd}"
+				dwarning "[WARNING] No such command : #{cmd}"
 			end
 		end
 	end
@@ -148,31 +158,31 @@ end
 
 checkfile($rf["pmc"]){
 	|f|
+	dwarning "[WARNING] Missing #{$rf["pmc"]}"
 	Permissions.save
 }
 
 checkfile($rf["cfg"]){
 	|f|
-	puts 
-	exec("echo '[FATAL] : #{f} is missing ! Please fill it with config'")
+	dfatal"[FATAL] : #{f} is missing ! Please fill it with config"
 }
 Permissions.load
 f = File.open($rf["cfg"])
 $config = JSON.parse(f.readlines.join("\n"))
 f.close
 if $config["token"] == nil
-	puts "[FATAL] No bot authorization token in #{$rf["cfg"]}"
-	exec "echo Halted"
+	dfatal "[FATAL] No bot authorization token in #{$rf["cfg"]}"
 end
 $token = $config["token"]
 if $config["chats"] == nil or $config["chats"] == []
 	puts "[WARNING] No chat IDs in #{$rf["cfg"]}"
 end
 $chats = $config["chats"]
+$cid = $chats[0] if $chats[0]
 if $config["last_update"]
 	$lid = $config["last_update"]
 else
-	puts "[WARNING] No last update ID in config, initializing with 0"
+	dwarning "[WARNING] No last update ID in config, initializing with 0"
 	$lid = 0
 end
 
@@ -200,7 +210,22 @@ addcmd("bot13",0,Proc.new{
 	cc = $cid unless cc
 	msg("Bot-Th1rt3en #{$version} by #{$author}",cc.to_i)
 },10)
-puts "[INFO] Bot started"
+addcmd("help",0,Proc.new{
+	|a,m|
+	cc = m.source["from"]["id"]
+	cc = $cid unless cc
+	t = cht
+	t = cht(a[0]) if a[0]
+	msg(t,cc)
+},1)
+$help["bot13"] = HelpPage.new("/bot13","prints bot's version","")
+$help["help"] = HelpPage.new("/help","prints help","Usage : /help [page]")
+dfatal("[FATAL] No chats are specified") unless $cid
+dinfo "[INFO] Bot started"
+begin
+	dinfo "[INFO] Loading plugins..."
+	papiinit
+end unless $plugins_disabled
 loop { $bot.tg.wait}
 
 

@@ -1,22 +1,33 @@
 # bot13 - independent version for Telegram.
 Bot for <s>weechat</s> [Telegram](https://telegram.org) written in Ruby<br>
 
+##Dependencies
+####Packages
+1. `hitimes` ( `ruby-hitimes` in ubuntu)
+2. `rspec`	( `ruby-rspec` in ubuntu)
+3. `ruby-dev`
+4. `libcurl4-*-dev` (e.g. `libcurl4-openssl-dev`)
+
+####Gems
+1. `multipart-post`
+2. `timers`
+3. `curb`
+
 ##How to launch
 `cd /path/to/your/bot13/ && ruby ./core.rb`
 
 ##How to install
-1. Copy `tgapi.rb`, `core.rb`, `api.rb`  folder into `$HOME/.bot13_telegram`
-2. Create file `$HOME/.bot13_telegram` and write into it
-```json
-{
-	"token" : <token>,
-	"chats" : [<chatid1>,<chatid2>,...]
-}
-```
-You can get token [here](https://telegram.me/BotFather) or use ready config.json in this repo
-
+Now doesn't need install
 
 ##Changelog
+####v 3.0.2A (Telegram)
+Implemented PAPI v 2.0<br>
+Upgraded TgAPI : added `TgAPI::TgBot#sendChatAction` and `TgAPI::TgBot#sendPhoto`<br>
+
+####v 3.0.1A (Telegram)
+No answers printed on getUpdates<br>
+Added `/help`
+
 ####v 3.0A (Telegram)
 **WARNING** Plugins don't work<br>
 **WARNING** Command processes are now calling with args `args,message`, not `args,user,channel`. `message` is of type TgAPI::Message. Use `message.source` and [Telegram BotAPI Message docs](https://core.telegram.org/bots/api#message)<br>

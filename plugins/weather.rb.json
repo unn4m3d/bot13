@@ -1,0 +1,11 @@
+{
+	"plugins":[
+		{
+			"name"			: "FEWI @ kochi-u.ac.jp",
+			"description"	: "FarEast Weather Images from satellites",
+			"license" 		: "GNU GPLv3",
+			"author"		: "unn4m3d",
+			"version"		: "1.0.0 Alpha"
+		}
+	]
+}

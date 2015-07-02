@@ -4,9 +4,8 @@
 #@author unn4m3d
 
 #$c = 3.chr
-$version = "3.0 Telegram Edition Alpha"
+$version = "3.0.1 Telegram Edition Alpha"
 $author = "unn4m3d"
-require $home + "/.bot13/papi"
 $msgs = {
 	"lose" => ["LOL!", "Loser!", "Korean Random...", "I dunno why LOL", "Losers, losers everywhere", "kekeke"],
 	"win"  => ["OMG OMG OMG","Congratulations! You are the WinRAR!!1","WHYYYY???"],
@@ -55,6 +54,7 @@ end
 #@param message [String] Message
 def debug_msg(level,message)
 	$debug.push(DebugMsg.new(message,level))
+	puts message
 end
 
 #An alias for {#debug_msg}(3,msg). Pushes message with level 3 (FATAL)
@@ -62,6 +62,7 @@ end
 #@param msg [String] Message
 def dfatal(msg)
 	debug_msg(3,msg)
+	exec "echo Halted"
 end
 
 #An alias for {#debug_msg}(2,msg). Pushes message with level 2 (CRITICAL)
@@ -92,9 +93,9 @@ $perms = {}
 class Permissions
 	#Sets permissions level
 	#
-	#@param nick [String] Target
-	#@param lvl [Integer] Perm level
-	#@note Calls {.save}
+	# @param nick [String] Target
+	# @param lvl [Integer] Perm level
+	# @note Calls {.save}
 	def self.set(nick,lvl)
 		$perms[nick] = lvl
 		self.save()
@@ -129,8 +130,8 @@ class Permissions
 
 	#Gets perm level
 	#
-	#@param name [String] User's nick
-	#@return [String] User's permlvl
+	# @param name [String] User's nick
+	# @return [String] User's permlvl
 	def self.get(name)
 		if $perms[name]
 			return $perms[name]
@@ -139,15 +140,25 @@ class Permissions
 		end
 	end
 end
-
+#Commands
 $cmds = {}
+#Help pages
+$help = {}
 
+#Adds command
+#
+# @param n [String] Name
+# @param p [Numeric] Perm lvl
+# @param f [Proc] Process
+# @param t [Numeric] Timeout
 def addcmd(n,p,f,t=0)
 	$cmds[n] = (BotCommand.new(p,n,f))
 end
 
+#Represents the bot command
 class BotCommand
 	attr_reader:perm,:name,:func
+	#Main constructor
 	def initialize(p,n,f)
 		@perm = p
 		@name = n
@@ -159,3 +170,30 @@ class BotCommand
 		end
 	end
 end
+
+class HelpPage
+	attr_reader:name,:brief,:text
+	def initialize(n,b,t)
+		@name,@brief,@text = n,b,t
+	end	
+end
+
+def cht(page=nil)
+	if page
+		if $help[page]
+			return"#{$help[page].name} - #{$help[page].brief}\n#{$help[page].text}"
+		else
+			puts "[WARNING] No such help page : #{page}"
+		end
+	else
+		o = "HELP\n"
+		for k in $help.keys do
+			o += k
+			o += " - "
+			o += $help[k].brief
+			o += "\n"
+		end
+		return o
+	end
+end
+
