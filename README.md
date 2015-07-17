@@ -49,7 +49,7 @@ Fixed some minor bugs<br>
 
 ####v 2.0A (Independent)
 Now works outside of Weechat<br>
-**WARNING** Plugins don't work at the moment<br>
+**WARNING** Plugins aren't working at the moment<br>
 **WARNING** NickList is deleted now<br>
 New command : `!debug [<count>[ (<level>|<lowlevel> <highlevel>)[ <target>]]]`
 
