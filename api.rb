@@ -4,7 +4,7 @@
 #@author unn4m3d
 
 #$c = 3.chr
-$version = "3.0.1 Telegram Edition Alpha"
+$version = "3.1 Telegram Edition Beta"
 $author = "unn4m3d"
 $msgs = {
 	"lose" => ["LOL!", "Loser!", "Korean Random...", "I dunno why LOL", "Losers, losers everywhere", "kekeke"],
@@ -14,7 +14,7 @@ $msgs = {
 	"join" => ["LOL, `U` has joined!", "`U` is the best thing ever"],
 	"leave"=> ["Goodbye,`U`","All `U`'s base are belong to us!"],
 }
-$motd = "#MAPC is c00l!"
+#$motd = "#MAPC is c00l!"
 $debug = []
 $bot = nil
 
@@ -98,17 +98,12 @@ class Permissions
 	# @note Calls {.save}
 	def self.set(nick,lvl)
 		$perms[nick] = lvl
-		self.save()
+		self.save
 	end
 
 	#Loads permissions from a config
 	def self.load
-		f = File.open($home + "/.bot13/perms.cfg")
-		while not f.eof?
-			s = f.gets.split(" ")
-			$perms[s[0]] = s[1].to_i
-		end
-		f.close
+		$perms = (JSON.parse File.read($home+"/data/perms.json"))["users"]
 	end
 	
 	#Saves permissions to a config
@@ -116,10 +111,8 @@ class Permissions
 		if not $perms[".default"]
 			$perms[".default"] = 0
 		end
-		f = File.open($home + "/.bot13/perms.cfg","w")
-		for k in $perms.keys()
-			f.write(k + " " + $perms[k].to_s + "\n") 
-		end
+		f = File.open($home + "/data/perms.json","w")
+		f.puts(JSON.generate($perms).gsub(/([{\[\]}])\s*/){$1+"\n"})
 		f.close
 	end
 
@@ -140,6 +133,23 @@ class Permissions
 		end
 	end
 end
+
+class CmdTimer
+	@@cmdt = {}
+	def self.set(cmd,uid,timeout)
+		@@cmdt[uid] = {} unless @@cmdt[uid]
+		@@cmdt[uid][cmd] = Time.now.to_i + timeout
+	end
+	def self.get(cmd,uid)
+		return Time.now.to_i unless @@cmdt[uid]
+		return Time.now.to_i unless @@cmdt[uid][cmd]
+		return @@cmdt[uid][cmd]
+	end
+	def self.available?(cmd,uid)
+		return (CmdTimer.get(cmd,uid) <= Time.now.to_i)
+	end
+end
+
 #Commands
 $cmds = {}
 #Help pages
@@ -151,23 +161,26 @@ $help = {}
 # @param p [Numeric] Perm lvl
 # @param f [Proc] Process
 # @param t [Numeric] Timeout
-def addcmd(n,p,f,t=0)
-	$cmds[n] = (BotCommand.new(p,n,f))
+def addcmd(n,p,f,t=0) 
+	n = "/" + n unless n.match(/^\/.*$/)
+	$cmds[n] = (BotCommand.new(p,n,f,t))
 end
 
 #Represents the bot command
 class BotCommand
-	attr_reader:perm,:name,:func
+	attr_reader:perm,:name,:func,:timeout
 	#Main constructor
-	def initialize(p,n,f)
+	def initialize(p,n,f,t)
 		@perm = p
 		@name = n
 		@func = f
+		@timeout = t
 	end
 	def execute(a,m)
-		if Permissions.get(m.source["from"]["username"]) >= @perm
-			@func.call(a,m)
-		end
+		return unless Permissions.get(m.source["from"]["username"]) >= @perm
+		return unless CmdTimer.available?(@name,m.source["from"]["id"].to_s)
+		CmdTimer.set(@name,m.source["from"]["id"].to_s,@timeout)
+		@func.call(a,m) 
 	end
 end
 
@@ -184,6 +197,7 @@ def cht(page=nil)
 			return"#{$help[page].name} - #{$help[page].brief}\n#{$help[page].text}"
 		else
 			puts "[WARNING] No such help page : #{page}"
+			return ""
 		end
 	else
 		o = "HELP\n"

@@ -7,6 +7,7 @@ require 'curb'
 require 'json'
 require 'timers' #gem install timers
 require 'uri'
+$lid = 0
 $imgmime = {
 	".png" => "image/png",
 	".gif" => "image/gif",
@@ -24,6 +25,9 @@ module TgAPI
 			@first_name = j["first_name"]
 			@last_name = j["last_name"]
 			@username = j["username"]
+		end
+		def to_json
+			return {"id"=>@id,"first_name"=>@first_name,"last_name"=>@last_name,"username"=>@username}
 		end
 	end
 	
@@ -43,6 +47,7 @@ module TgAPI
 		attr_reader:text,:video,:contact,:location,:new_chat_participant,:left_chat_participant
 		attr_reader:new_chat_title,:new_chat_photo,:delete_chat_photo,:group_chat_created
 		attr_reader:source
+		attr_accessor:_args
 		def initialize(j)
 			#puts j.to_s
 			@source = j
@@ -59,6 +64,13 @@ module TgAPI
 			@left_chat_participant = User.new(@left_chat_participant) if @left_chat_participant
 			@new_chat_title,@new_chat_photo = j["new_chat_title"],j["new_chat_photo"]
 			@delete_chat_photo,@group_chat_created = j["delete_chat_photo"],j["group_chat_created"]
+		end
+	end
+	
+	class ReplyKeyboardMarkup
+		attr_accessor:keyboard,:resize_keyboard,:one_time_keyboard,:selective
+		def initialize(j)
+			@keyboard
 		end
 	end
 	
@@ -153,8 +165,9 @@ module TgAPI
 		end
 		
 		def update
-			h = query("getUpdates")
+			h = query("getUpdates",{"offset"=>$lid+1})
 			if h["ok"] == true
+				if h["result"].length < 1 then return end
 				for m in h["result"] do
 					for hn in @handlers
 						if hn.options["raw"] then
