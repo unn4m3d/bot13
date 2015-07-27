@@ -6,7 +6,7 @@ Bot for <s>weechat</s> [Telegram](https://telegram.org) written in Ruby<br>
 1. `hitimes` ( `ruby-hitimes` in ubuntu)
 2. `rspec`	( `ruby-rspec` in ubuntu)
 3. `ruby-dev`
-4. `libcurl4-*-dev` (e.g. `libcurl4-openssl-dev`)
+4. `libcurl4-*-dev` (e.g. `libcurl4-openssl-dev`) **Optional, used for sending photos**
 
 ####Gems
 1. `multipart-post`
