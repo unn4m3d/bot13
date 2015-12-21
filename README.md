@@ -9,7 +9,6 @@ Bot for <s>weechat</s> [Telegram](https://telegram.org) written in Ruby<br>
 4. `libcurl4-*-dev` (e.g. `libcurl4-openssl-dev`) **Optional, used for sending photos**
 
 ####Gems
-1. `multipart-post`
 2. `timers`
 3. `curb`
 
@@ -17,9 +16,18 @@ Bot for <s>weechat</s> [Telegram](https://telegram.org) written in Ruby<br>
 `cd /path/to/your/bot13/ && ruby ./core.rb`
 
 ##How to install
-Now doesn't need install
+It doesn't need install
+
+##TODO
+- [ ] API Documentation
+- [ ] Startup scripts
+- [ ] Plugin ports from 3.0 
 
 ##Changelog
+####v 3.2.0A (Telegram)
+Full rewrite<br>
+New API
+
 ####v 3.0.2A (Telegram)
 Implemented PAPI v 2.0<br>
 Upgraded TgAPI : added `TgAPI::TgBot#sendChatAction` and `TgAPI::TgBot#sendPhoto`<br>
