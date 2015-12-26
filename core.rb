@@ -78,6 +78,18 @@ begin
 		dinfo "Creating directory temp/"
 	end
 	
+	unless File.exists?(File.join($home,"data","permissions.json"))
+		dwarning("No permissions data found!")
+		Bot13::Perms.save
+	end
+	
+	unless File.exists?(File.join($home,"data","channels.json"))
+		dwarning("No channel permissions data found!")
+		Bot13::ChanPerms.save
+	end
+	
+	Bot13::Perms.load
+	Bot13::ChanPerms.load
 	
 	begin
 		require 'curb'
