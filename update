@@ -1,0 +1,50 @@
+#!/bin/bash
+# Update script
+
+GITURL="https://github.com/unn4m3d/bot13"
+GITBRANCH="telegram"
+
+ZIPURL="http://unn4m3d.github.io/bot13/latest.zip"
+
+gitupdate(){
+	if [ "$1" != "" ]; then
+		GITURL=$1
+	fi
+	if [ "$2" != "" ]; then
+		GITBRANCH=$2
+	fi
+	if [ ! -d ./.git ]; then
+		git init
+		git remote add origin $GITURL
+	fi
+	git remote set-url origin $GITURL
+	git pull origin $GITBRANCH
+	echo "Success!"
+}
+
+zipupdate(){
+	TS=$(date +%s)
+	if [ ! -d ./temp ]; then mkdir ./temp; fi
+	if [ "$1" != "" ]; then
+		ZIPURL=$1
+	fi
+	wget -O "./temp/$TS.zip" $ZIPURL
+	unzip -d ./ ./temp/$TS
+}
+
+usage(){
+	echo "Usage : $0 (git [url [branch]]|zip)"
+}
+
+case "$1" in
+	"git")
+		gitupdate $2 $3
+		;;
+	"zip")
+		zipupdate $2
+		;;
+	*)
+		usage
+		;;
+	
+esac

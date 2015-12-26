@@ -18,7 +18,10 @@ Bot for <s>weechat</s> [Telegram](https://telegram.org) written in Ruby<br>
 `cd /path/to/your/bot13/ && ruby ./core.rb`
 
 ##How to install
-It doesn't need install
+
+- `git clone https://github.com/unn4m3d/bot13 -b telegram`
+- Download [update] and launch it either with `./update git` or `./update zip` 
+
 
 ##TODO
 - [x] API Documentation
