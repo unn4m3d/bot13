@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <title>Bot13 by unn4m3d</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>Bot13</h1>
+        <h2>Bot for IRC and Telegram written in Ruby</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/unn4m3d/bot13/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/unn4m3d/bot13/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/unn4m3d/bot13" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h1>
+<a id="bot13---independent-version-for-telegram" class="anchor" href="#bot13---independent-version-for-telegram" aria-hidden="true"><span class="octicon octicon-link"></span></a>bot13 - independent version for Telegram.</h1>
+
+<p>Bot for <s>weechat</s> <a href="https://telegram.org">Telegram</a> written in Ruby<br></p>
+
+<h2>
+<a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dependencies</h2>
+
+<h4>
+<a id="packages" class="anchor" href="#packages" aria-hidden="true"><span class="octicon octicon-link"></span></a>Packages</h4>
+
+<ol>
+<li>
+<code>hitimes</code> ( <code>ruby-hitimes</code> in ubuntu)</li>
+<li>
+<code>rspec</code>  ( <code>ruby-rspec</code> in ubuntu)</li>
+<li><code>ruby-dev</code></li>
+<li>
+<code>libcurl4-*-dev</code> (e.g. <code>libcurl4-openssl-dev</code>) <strong>Optional, used for sending photos</strong>
+</li>
+</ol>
+
+<h4>
+<a id="gems" class="anchor" href="#gems" aria-hidden="true"><span class="octicon octicon-link"></span></a>Gems</h4>
+
+<ol>
+<li><code>timers</code></li>
+<li><code>curb</code></li>
+</ol>
+
+<h2>
+<a id="how-to-launch" class="anchor" href="#how-to-launch" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to launch</h2>
+
+<p><code>cd /path/to/your/bot13/ &amp;&amp; ruby ./core.rb</code></p>
+
+<h2>
+<a id="how-to-install" class="anchor" href="#how-to-install" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to install</h2>
+
+<p>It doesn't need install</p>
+
+<h2>
+<a id="todo" class="anchor" href="#todo" aria-hidden="true"><span class="octicon octicon-link"></span></a>TODO</h2>
+
+<ul>
+<li>[ ] API Documentation</li>
+<li>[ ] Startup scripts</li>
+<li>[ ] Plugin ports from 3.0 </li>
+</ul>
+
+<h2>
+<a id="changelog" class="anchor" href="#changelog" aria-hidden="true"><span class="octicon octicon-link"></span></a>Changelog</h2>
+
+<h4>
+<a id="v-320a-telegram" class="anchor" href="#v-320a-telegram" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 3.2.0A (Telegram)</h4>
+
+<p>Full rewrite<br>
+New API</p>
+
+<h4>
+<a id="v-302a-telegram" class="anchor" href="#v-302a-telegram" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 3.0.2A (Telegram)</h4>
+
+<p>Implemented PAPI v 2.0<br>
+Upgraded TgAPI : added <code>TgAPI::TgBot#sendChatAction</code> and <code>TgAPI::TgBot#sendPhoto</code><br></p>
+
+<h4>
+<a id="v-301a-telegram" class="anchor" href="#v-301a-telegram" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 3.0.1A (Telegram)</h4>
+
+<p>No answers printed on getUpdates<br>
+Added <code>/help</code></p>
+
+<h4>
+<a id="v-30a-telegram" class="anchor" href="#v-30a-telegram" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 3.0A (Telegram)</h4>
+
+<p><strong>WARNING</strong> Plugins don't work<br>
+<strong>WARNING</strong> Command processes are now calling with args <code>args,message</code>, not <code>args,user,channel</code>. <code>message</code> is of type TgAPI::Message. Use <code>message.source</code> and <a href="https://core.telegram.org/bots/api#message">Telegram BotAPI Message docs</a><br>
+<strong>WARNING</strong> There is a bug : message.chat and message.from may be nil.
+First telegram version<br></p>
+
+<h4>
+<a id="v-203a-independent" class="anchor" href="#v-203a-independent" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 2.0.3A (Independent)</h4>
+
+<p>Colorized Bandit<br>
+Added <code>!restart</code> command</p>
+
+<h4>
+<a id="v-202a-independent" class="anchor" href="#v-202a-independent" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 2.0.2A (Independent)</h4>
+
+<p>Fixed NickList<br>
+Documented API<br>
+Splitted API and Core </p>
+
+<h4>
+<a id="v-201a-independent" class="anchor" href="#v-201a-independent" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 2.0.1A (Independent)</h4>
+
+<p>Fixed some minor bugs<br>
+<code>!help</code> and <code>!perms get</code> now can work in private chat</p>
+
+<h4>
+<a id="v-20a-independent" class="anchor" href="#v-20a-independent" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 2.0A (Independent)</h4>
+
+<p>Now works outside of Weechat<br>
+<strong>WARNING</strong> Plugins aren't working at the moment<br>
+<strong>WARNING</strong> NickList is deleted now<br>
+New command : <code>!debug [&lt;count&gt;[ (&lt;level&gt;|&lt;lowlevel&gt; &lt;highlevel&gt;)[ &lt;target&gt;]]]</code></p>
+
+<h4>
+<a id="v-171b" class="anchor" href="#v-171b" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 1.7.1B</h4>
+
+<p><s>Now loads with loader.rb</s><br>
+New help format</p>
+
+<h4>
+<a id="v-17b" class="anchor" href="#v-17b" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 1.7B</h4>
+
+<p>Now can work on several channels<br>
+Upgraded bandit saving algorythm<br>
+Upgraded !help<br>
+Upgraded !cmds<br>
+Upgraded bandit<br>
+Added Reactions</p>
+
+<h4>
+<a id="v-162b" class="anchor" href="#v-162b" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 1.6.2B</h4>
+
+<p>Upgraded NickList : Now it can list users</p>
+
+<h4>
+<a id="v-161b" class="anchor" href="#v-161b" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 1.6.1B</h4>
+
+<p>Upgraded API; Added NickList class that provides nick info</p>
+
+<h4>
+<a id="v-16b" class="anchor" href="#v-16b" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 1.6B</h4>
+
+<p>Added Plugin API</p>
+
+<h4>
+<a id="v-15b" class="anchor" href="#v-15b" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 1.5B</h4>
+
+<p>Added permissions<br>
+Added personal cmd timeout<br>
+Now it can do stuff only at one channel</p>
+
+<h4>
+<a id="v-14a" class="anchor" href="#v-14a" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 1.4A</h4>
+
+<p>Bot now can be switched off. Use <code>/dbot on</code> and <code>/dbot off</code> to switch<br>
+Added messages that are sent when user joins<br>
+Upgraded parser<br>
+Upgraded <code>!motd</code> command<br>
+Added <code>!help</code> command</p>
+
+<h4>
+<a id="v-13a" class="anchor" href="#v-13a" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 1.3A</h4>
+
+<p>Refactored ~10 lines<br>
+Fixed a bug with table of records<br>
+Added timeout<br>
+Added random messages</p>
+
+<h4>
+<a id="v-12a" class="anchor" href="#v-12a" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 1.2A</h4>
+
+<p>New bandit algorythm<br>
+Fixed a bug that passed username instead of nick in command args</p>
+
+<h4>
+<a id="v-11a" class="anchor" href="#v-11a" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 1.1A</h4>
+
+<p>New commands : <code>!cmds</code>, <code>!random [a[ b]]</code>, <code>!bandit</code>, <code>!winners</code><br>
+Upgraded parser : now reads correctly username,channel and special symbols</p>
+
+<h4>
+<a id="v-10a" class="anchor" href="#v-10a" aria-hidden="true"><span class="octicon octicon-link"></span></a>v 1.0A</h4>
+
+<p>Initial release</p>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
