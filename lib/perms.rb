@@ -23,7 +23,7 @@ module Bot13
 	
 		# Get user permission level in chat
 		#
-		# @param chat [Numeric] Chat ID
+		# @param [Integer] chat Chat ID
 		def get(chat)
 			if @chats[chat.to_s] then
 				return (@chats[chat.to_s].to_i > @global ? @chats[chat.to_s] : @global)
@@ -40,9 +40,9 @@ module Bot13
 	
 		# Get user permission level in chat
 		#
-		# @param user [Integer] User ID
-		# @param cid [Integer] Chat ID
-		# @returns [Integer] Permission level
+		# @param [Integer] user User ID
+		# @param [Integer] cid Chat ID
+		# @returns[Integer] Permission level
 		def self.get(user,cid=-1)
 			if @@users[user.to_s] then
 				return @@users[user.to_s].get(cid).to_i
@@ -57,9 +57,9 @@ module Bot13
 	
 		# Set user permission level
 		#
-		# @param user [Integer] User ID
-		# @param cid [Integer] Chat ID
-		# @param lvl [Integer] Perm level
+		# @param [Integer] user User ID
+		# @param [Integer] cid Chat ID
+		# @param [Integer] lvl Perm level
 		def self.set(user,cid,lvl)
 			@@users[user.to_s] ||= Perms.new(self.get('.default'),self.get('.default'))
 			@@users[user.to_s].chats[cid.to_s] = lvl
@@ -67,8 +67,8 @@ module Bot13
 	
 		# Set global user permission level
 		#
-		# @param user [Integer] User ID
-		# @param lvl [Integer] Perm level
+		# @param [Integer] user User ID
+		# @param [Integer] lvl Perm level
 		def self.set_g(user,lvl)
 			@@users[user.to_s] ||= Perms.new(self.get('.default'),self.get('.default'))
 			@@users[user.to_s].global = lvl
@@ -79,8 +79,8 @@ module Bot13
 		@@channels = {}
 		# Is command allowed in chat?
 		#
-		# @param perm [String] Permission
-		# @param chan [Integer] ChatID
+		# @param [String] perm Permission
+		# @param [Integer] chan ChatID
 		def self.allow?(perm,chan)
 			if @@channels[chan.to_s] then
 				return @@channels[chan.to_s].has_value? perm.to_s

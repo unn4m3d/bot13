@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/ruby
 
 $home = File.dirname(File.expand_path(__FILE__))
 
@@ -73,11 +73,19 @@ begin
 		$config['lid'] = 0
 	end
 	
+	unless File.exists?(File.join($home,"temp"))
+		Dir.mkdir(File.join($home,"temp"))
+		dinfo "Creating directory temp/"
+	end
+	
+	
 	begin
 		require 'curb'
 		$ldcurb=true
+		dinfo "Loaded curb successfully"
 	rescue LoadError
 		$ldcurb=false
+		dwarning "Cannot load curb, image uploading disabled"
 	end
 	
 	$bot = TgAPI::TgBot.new $config['token'],$ldcurb
@@ -91,7 +99,7 @@ begin
 				$bot.uid = u.update_id
 				$config['lid'] = $bot.uid
 				if u.message.text
-					dinfo "Processing update #{u.update_id} with text #{u.message.text}"
+					dinfo "Processing update #{u.update_id} : <#{u.message.from.username}> #{u.message.text}"
 					cmd = $cmdengine.parse u.message
 					if cmd
 						if Bot13::Perms.get(u.message.source['from']['id'].to_s,u.message.source['chat']['id'].to_s) >= $cmdengine.cmds[$cmdengine.get_original_name(cmd.name)].perm
@@ -134,7 +142,7 @@ begin
 
 rescue => e
 	puts "[FATAL] #{e.class.name.upcase.gsub(/::/,'_')}"
-	if $options[:f] then
+	if $options[:f] and not e.kind_of? LoadError then #Restart if failsafe mode enabled and this is not a LoadError
 			restart
 	else
 			_ul

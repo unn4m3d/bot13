@@ -63,6 +63,10 @@ module Bot13
 			timer.set_timeout(key,sec,user)
 		end
 	
+		# Call command
+		# @yieldparam [CmdEngine] engine CmdEngine context
+		# @yield [Command] Itself (to give command an ability to set timeout)
+		# @yieldparam [TgAPI::Message] msg Message
 		def call(engine,msg)
 			@proc.call(engine,self,msg)
 		end

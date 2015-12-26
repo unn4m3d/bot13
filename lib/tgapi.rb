@@ -5,9 +5,14 @@ require 'timers' #gem install timers
 require 'uri'
 $lid = 0
 
-
+# Basic Telegram Bots API
+#
+# @author unn4m3d
+# @todo Implement rest Telegram Bot API
+# @version 0.0.3
 module TgAPI
 
+		# An object representing user
         class User
                 attr_reader:id,:first_name,:last_name,:username
                 def initialize(j)
@@ -21,14 +26,12 @@ module TgAPI
                 end
         end
 
-        class GroupChat < User
-                attr_reader:title
-                def initialize(j)
-                        if j["title"] then
-                                @title = j["title"]
-                        else
-                                super(j)
-                        end
+        class Chat
+                attr_reader:id,:type,:title,:username,:first_name,:last_name
+                def initialize(h)
+					@id,@type,@title = h['id'],h['type'],h['title']
+					@username, @first_name = h['username'],h['first_name']
+					@last_name = h['last_name']
                 end
         end
 
@@ -44,7 +47,7 @@ module TgAPI
                         @message_id = j["message_id"]
                         @from = User.new(j["from"])
                         @date = j["date"]
-                        @chat = GroupChat.new(j["chat"])
+                        @chat = Chat.new(j["chat"])
                         @reply_to_message,@audio,@document,@photo = j["reply_to_message"],j["audio"],j["document"],j["photo"]
                         @reply_to_message = Message.new(@reply_to_message) if @reply_to_message #Parsing as JSON if exists
                         @sticker = j["sticker"]
@@ -85,6 +88,13 @@ module TgAPI
                 public
                 attr_reader:token,:tg
                 attr_accessor:handlers,:state,:uid
+                
+                # Send query
+                #
+                # @param [String] func Function name (e.g. sendMessage)
+                # @param [Hash] args Arguments
+                # @return [Hash] Result of the query
+                # @raise [Exception] if query is not successful
                 def query(func,args={})
                         uri = URI("https://api.telegram.org/bot#{@token}/#{func}")
                         uri.query = URI.encode_www_form(args)
@@ -135,11 +145,22 @@ module TgAPI
                         return r
                 end
 
-                def sendMessage(chat_id,text,dwpp=nil,rtmi=nil,rmu=nil)
+
+				# Send message
+				# 
+				# @param [Integer] chat_id Chat ID
+				# @param [String] text Text
+				# @param [Boolean] dwpp Disable web page preview
+				# @param [Integer] rtmi Reply to message (ID)
+				# @param [Hash] rmu Reply markup
+				# @param [String] parse_mode Parse mode (set to Markdown if you want to use it)
+				# @return [Hash] Result of the query
+                def sendMessage(chat_id,text,dwpp=nil,rtmi=nil,rmu=nil,parse_mode=nil)
                         params = {"chat_id" => chat_id,"text"=>text}
                         params["disable_web_page_preview"] = dwpp if dwpp
                         params["reply_to_message_id"] = rtmi if rtmi
                         params["reply_markup"] = rmu.to_json if rmu
+                        params["parse_mode"] = parse_mode if parse_mode
                         params.rehash
                         return query("sendMessage",params)
                 end

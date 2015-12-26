@@ -1,6 +1,8 @@
 # bot13 - independent version for Telegram.
 Bot for <s>weechat</s> [Telegram](https://telegram.org) written in Ruby<br>
 
+[How to write plugins](PLUGINS.md) **|** [How to configure bot](CONFIG.md)
+
 ##Dependencies
 ####Packages
 1. `hitimes` ( `ruby-hitimes` in ubuntu)
@@ -22,8 +24,13 @@ It doesn't need install
 - [ ] API Documentation
 - [ ] Startup scripts
 - [ ] Plugin ports from 3.0 
+- [ ] Remote control
 
 ##Changelog
+####v 3.2.1A (Telegram)
+Wrote some documentation<br>
+Fixed some bugs
+
 ####v 3.2.0A (Telegram)
 Full rewrite<br>
 New API
