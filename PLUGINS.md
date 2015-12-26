@@ -1,6 +1,6 @@
 #Plugins manual
 
-**Documentation** : [here](doc/index.html)
+**Documentation** : [here](https://unn4m3d.github.io/bot13/doc/index.html)
 
 ###How to write a basic HelloWorld plugin
 
@@ -56,7 +56,7 @@ To send message, you must call `$bot.sendMessage(...)`:
 ```ruby
 	$bot.sendMessage(-10000000,"*Hello,World*",nil,nil,nil,"Markdown")
 ```
-See also [YARD Documentation](doc/TgAPI/TgBot.html#sendMessage-instance_method)
+See also [YARD Documentation](https://unn4m3d.github.io/bot13/doc/TgAPI/TgBot.html#sendMessage-instance_method)
 
 ###Plugin initial config and info
 
