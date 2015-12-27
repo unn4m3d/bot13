@@ -67,18 +67,30 @@ def debug_msg(m,l=Bot13::MsgLevel::NONE)
 	Bot13::Debug.add d
 end
 
+# Put message in log with level INFO
+#
+# @param [String] m Message
 def dinfo(m)
 	debug_msg(m,Bot13::MsgLevel::INFO)
 end
 
+# Put message in log with level WARNING
+#
+# @param [String] m Message
 def dwarning(m)
 	debug_msg(m,Bot13::MsgLevel::WARNING)
 end
 
+# Put message in log with level CRITICAL
+#
+# @param [String] m Message
 def dcritical(m)
 	debug_msg(m,Bot13::MsgLevel::CRITICAL)
 end
 
+# Put message in log with level FATAL
+#
+# @param [String] m Message
 def dfatal(m)
 	debug_msg(m,Bot13::MsgLevel::FATAL)
 end
