@@ -26,6 +26,7 @@ begin
 		o.on('-f','--failsafe','Catch exceptions with restart'){$options[:f] = true}
 		o.on('-h','--help','Print this help'){puts o; exit 0}
 		o.on('-dLEVEL','--debug=LEVEL','Minimal message level'){|l|$options[:d]=l.to_i}
+		o.on('-tTOKEN','--token=TOKEN','Set token'){|t|$options[:t]=t}
 	end.parse!
 
 	unless File.exists?(File.join($home,'lib','debug.rb'))
@@ -63,7 +64,7 @@ begin
 		end
 	end
 	
-	unless $config['token']
+	unless $config['token'] or $options[:t]
 		dfatal "No token specified"
 		exit ExitCodes::INVALIDCFG
 	end
@@ -100,7 +101,9 @@ begin
 		dwarning "Cannot load curb, image uploading disabled"
 	end
 	
-	$bot = TgAPI::TgBot.new $config['token'],$ldcurb
+	token = ($options[:t] || $config['token'])
+	
+	$bot = TgAPI::TgBot.new token,$ldcurb
 	
 	$cmdengine = Bot13::CmdEngine.new
 	
@@ -113,6 +116,7 @@ begin
 				if u.message.text
 					dinfo "Processing update #{u.update_id} : <#{u.message.from.username}> #{u.message.text}"
 					cmd = $cmdengine.parse u.message
+					u.message._args = u.message.text.gsub(/^[^\s]+\s/){dinfo "Deleting text #{$1}";''}
 					if cmd
 						if Bot13::Perms.get(u.message.source['from']['id'].to_s,u.message.source['chat']['id'].to_s) >= $cmdengine.cmds[$cmdengine.get_original_name(cmd.name)].perm
 							if $cmdengine.timer.allow?(cmd.name,u.message.source['from']['id'].to_s)
