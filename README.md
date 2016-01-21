@@ -30,6 +30,10 @@ Bot for <s>weechat</s> [Telegram](https://telegram.org) written in Ruby<br>
 - [ ] Remote control
 
 ##Changelog
+####v 3.2.2A (Telegram)
+Fixed missing plugin data<br/>
+Removed some debug messages
+
 ####v 3.2.1A (Telegram)
 Wrote some documentation<br>
 Fixed some bugs

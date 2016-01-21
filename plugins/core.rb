@@ -8,4 +8,21 @@ load do
 		},
 		0
 	))
+
+	#puts JSON.generate $plugins
+
+	$cmdengine.addcmd(Bot13::Command.new(
+		"plglist",
+		Proc.new{
+			|e,c,m|
+			args = m._args.split(' ')
+			message = "PLUGIN LIST\n========\n"
+			$plugins.each do |k,p|
+				#puts "PLG " + p.to_s
+				message += p.brief + "\n"
+			end
+			message += "========"
+			$bot.sendMessage(m.source['chat']['id'].to_s,message)
+		},0
+	))
 end

@@ -10,6 +10,7 @@ $lid = 0
 # @author unn4m3d
 # @todo Implement rest Telegram Bot API
 # @version 0.0.3
+
 module TgAPI
 
 		# An object representing user
@@ -101,7 +102,7 @@ module TgAPI
                         puts "[INFO] Query : #{uri.to_s}" unless func.match(/^getUpdates.*$/i)
                         r = Net::HTTP.get_response(uri)
                         j = JSON.parse(r.body)
-                        raise Exception.new(j) unless j["ok"]
+                        raise StandardError.new(j['description']) unless j["ok"]
                         return j
                 end
 

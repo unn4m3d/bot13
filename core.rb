@@ -10,7 +10,7 @@ module ExitCodes
 end
 
 module Bot13
-	VERSION = "3.2.0 Tg Edition Alpha"
+	VERSION = "3.2.2 Tg Edition Alpha"
 end
 require 'optparse'
 require 'json'
@@ -147,17 +147,17 @@ begin
 		},{}
 	))
 	
-	plugins = Bot13::load_plg 
+	$plugins = Bot13::load_plg 
 	
 	_ld
-	plugins.each{|k,v| v.load}
-	unload{plugins.each{|k,v|v.unload}}
+	$plugins.each{|k,v| v.load}
+	unload{$plugins.each{|k,v|v.unload}}
 	
 	$bot.start
 	
 
 rescue => e
-	puts "[FATAL] #{e.class.name.upcase.gsub(/::/,'_')}"
+	puts "[FATAL] #{(e.class.name.gsub(/([A-Z])/){"_#{$1}"}).upcase.gsub(/::/,'_')}"
 	if $options[:f] and not e.kind_of? LoadError then #Restart if failsafe mode enabled and this is not a LoadError
 			restart
 	else
