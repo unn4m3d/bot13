@@ -4,8 +4,8 @@ module Bot13
 			return {"global"=>@global,"local"=>@local}
 		end
 
-		def calc
-			(@global && @local ? (@global > @local ? @global : @local) : @global || @local || 0)
+		def calc(cid)
+			(@global && @local[cid.to_s] ? (@global > @local[cid.to_s] ? @global : @local[cid.to_s]) : @global || @local[cid.to_s] || 0)
 		end
 
 		def self.from_hash(h)
@@ -32,16 +32,16 @@ module Bot13
 			@driver.close
 		end
 
-		def calc(uid)
+		def calc(uid,cid)
 			@data ||= {}
 			@data['users'] ||= {}
-			@data['users'][uid.to_s] || 0
+			Perms.from_hash(@data['users'][uid.to_s]).calc(cid.to_s) || 0
 		end
 
 		def allow?(uid,cid,permlvl,permname)
 			@data ||= {}
 			@data['channels'] ||= {}
-			calc(uid) >= permlvl and (not @data['channels'][cid.to_s] or (!permname) or @data['channels'][cid.to_s].include?(permname))
+			calc(uid,cid) >= permlvl and (not @data['channels'][cid.to_s] or (!permname) or @data['channels'][cid.to_s].include?(permname))
 		end
 	end
 
