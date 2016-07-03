@@ -4,9 +4,24 @@
 
 `data/config.json` must have following structure :
 ```json
-	{"token":"<token>","lid":"<number"}
+{
+	"token":"YOUR_TOKEN",
+	"storage":{
+		"enable":true,
+		"driver":{
+			"class":"Bot13::Storage::JSONStorageDriver",
+			"params":"data/storage.json"
+		}
+	},
+	"perms":{
+		"driver":{
+			"class":"Bot13::JSONPermDriver",
+			"params":"data/permissions.json"
+		}
+	}
+}
 ```
-`token` is your Telegram Bot token, `lid` (optional) is the last received update ID
+`token` is your Telegram Bot token.
 
 ###How to fill data/permissions.json
 
@@ -24,7 +39,7 @@
 			...
 		]
 	}
-``` 
+```
 
 Numbers in keys (`11201212`,`-11333160` and `-11333159`) are User IDs and Chat IDs, numeric values are permission levels.
 

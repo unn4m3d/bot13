@@ -17,30 +17,20 @@ def unload(&b)
 	$unload.push b if block_given?
 end
 
-# Call block
-#
-# @param [Object] a Argument
-# @param [Block] b Block to execute
-# @api private
-def _c(a=nil,&b)
-	yield a if a and block_given?
-	yield if block_given?
-end
-
 # Execute load query
 #
 # @param [Array] blocks Array of blocks
 # @param [String] label Label (name of execution place)
 # @param [Hash] cfg Config to load
 # @api private
-def _ld(blocks=$load,label=nil,cfg={})
+def _ld(blocks=$load,label=nil,*cfg)
 	blocks.each_with_index do |v,i|
 		if self.class.method_defined? :dinfo then
 			dinfo "Loading block #{i+1}/#{blocks.size} from #{label}" if label
 		else
 			puts "[INFO] Loading block #{i+1}/#{blocks.size} from #{label}" if label
 		end
-		_c cfg,&v
+		v.call(*cfg)
 	end
 end
 
@@ -57,7 +47,7 @@ def _ul(blocks=$unload,label=nil)
 		else
 			puts "[INFO] Unloading block #{i+1}/#{blocks.size} from #{label}" if label
 		end
-		_c &v
+		v.call
 	end
 end
 

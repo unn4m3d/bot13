@@ -1,1 +1,9 @@
-{"token":"103956693:AAEI7NI4-TyT3fmd4pG_Gte5xbwNxHXOSgE","lid":0}
+{
+  "storage":{"enable":false},
+  "perms":{
+    "driver":{
+      "class":"Bot13::JSONPermDriver",
+      "params":"data/permissions.json"
+    }
+  }
+}

@@ -1,28 +1,26 @@
-load do
-	$cmdengine.addcmd(Bot13::Command.new(
-		"bot13",
-		Proc.new{
-			|e,c,m|
-			$bot.sendMessage(m.source['chat']['id'].to_s,"Bot-Th1rt3en v #{Bot13::VERSION}")
-			e.timer.set_timeout(c.name,30,m.source['from']['id'].to_s)
-		},
-		0
-	))
+class CorePlugin < Bot13::Plugin
+	register
 
-	#puts JSON.generate $plugins
+	def initialize(bot)
+		super bot
 
-	$cmdengine.addcmd(Bot13::Command.new(
-		"plglist",
-		Proc.new{
-			|e,c,m|
-			args = m._args.split(' ')
-			message = "PLUGIN LIST\n========\n"
-			$plugins.each do |k,p|
-				#puts "PLG " + p.to_s
-				message += p.brief + "\n"
-			end
-			message += "========"
-			$bot.sendMessage(m.source['chat']['id'].to_s,message)
-		},0
-	))
+		bot.listen(cmd:"bot13",ignore_username:false,pname:"corefunc"){
+			|msg|
+			bot.api.send_message(
+				chat_id:msg.chat.id,
+				text:"Bot13 v#{Bot13::VERSION} by @unn4m3d"
+			)
+		}
+
+		bot.listen(cmd:"plugins",pname:"corefunc"){
+			|msg|
+			bot.api.send_message(
+				chat_id:msg.chat.id,
+				text: "Plugins:\n" + bot.active_plugins.inject(""){|memo,a| memo + "> #{a.brief("+")}\n"}
+			)
+		}
+	end
+
+	def author; "unn4m3d" end
+	def version; Bot13::VERSION end
 end

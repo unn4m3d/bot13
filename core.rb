@@ -10,7 +10,7 @@ module ExitCodes
 end
 
 module Bot13
-	VERSION = "3.2.2 Tg Edition Alpha"
+	VERSION = "3.3 Tg Edition"
 end
 require 'optparse'
 require 'json'
@@ -37,13 +37,15 @@ begin
 	require File.join($home,'lib','debug')
 
 	dinfo "Debug library loaded successfully"
-	
+
 	lib 'lib/load'
-	lib 'lib/tgapi'
+	#lib 'lib/tgapi'
 	lib 'lib/plugins'
-	lib 'lib/cmdengine'
+	#lib 'lib/cmdengine'
+	lib 'lib/storage'
 	lib 'lib/perms'
-	
+	lib 'lib/bot'
+
 	def restart
 		puts '[INFO] Restart!'
 		begin
@@ -52,109 +54,32 @@ begin
 			exec "#{__FILE__} #{ARGV.join ' '}"
 		end
 	end
-	
-	$config = JSON.parse File.read File.join($home,'data/config.json')
-	
-	
-	unload do
-		$config['lid'] =$bot.uid
-		File.open(File.join($home,'data/config.json'),'w') do
-			|f|
-			f.write JSON.generate ($config)
-		end
-	end
-	
-	unless $config['token'] or $options[:t]
+
+	config = JSON.parse File.read File.join($home,'data/config.json')
+
+
+	unless config['token'] or $options[:t]
 		dfatal "No token specified"
 		exit ExitCodes::INVALIDCFG
 	end
-	
-	unless $config['lid']
-		dwarning "No Last Update ID specified, returning to 0"
-		$config['lid'] = 0
-	end
-	
+
 	unless File.exists?(File.join($home,"temp"))
 		Dir.mkdir(File.join($home,"temp"))
 		dinfo "Creating directory temp/"
 	end
-	
-	unless File.exists?(File.join($home,"data","permissions.json"))
-		dwarning("No permissions data found!")
-		Bot13::Perms.save
-	end
-	
-	unless File.exists?(File.join($home,"data","channels.json"))
-		dwarning("No channel permissions data found!")
-		Bot13::ChanPerms.save
-	end
-	
-	Bot13::Perms.load
-	Bot13::ChanPerms.load
-	
-	begin
-		require 'curb'
-		$ldcurb=true
-		dinfo "Loaded curb successfully"
-	rescue LoadError
-		$ldcurb=false
-		dwarning "Cannot load curb, image uploading disabled"
-	end
-	
-	token = ($options[:t] || $config['token'])
-	
-	$bot = TgAPI::TgBot.new token,$ldcurb
-	
-	$cmdengine = Bot13::CmdEngine.new
-	
-	$bot.addhandler(TgAPI::TgMessageHandler.new(
-		Proc.new{
-			|u|
-			if u.update_id > $bot.uid
-				$bot.uid = u.update_id
-				$config['lid'] = $bot.uid
-				if u.message.text
-					dinfo "Processing update #{u.update_id} : <#{u.message.from.username}> #{u.message.text}"
-					cmd = $cmdengine.parse u.message
-					u.message._args = u.message.text.gsub(/^[^\s]+\s/){dinfo "Deleting text #{$1}";''}
-					if cmd
-						if Bot13::Perms.get(u.message.source['from']['id'].to_s,u.message.source['chat']['id'].to_s) >= $cmdengine.cmds[$cmdengine.get_original_name(cmd.name)].perm
-							if $cmdengine.timer.allow?(cmd.name,u.message.source['from']['id'].to_s)
-								if Bot13::ChanPerms.allow?($cmdengine.get_original_name(cmd.name),u.message.source['chat']['id'].to_s)
-									cmd.call($cmdengine,u.message)
-								else
-									$bot.sendMessage(
-										u.message.source['chat']['id'],
-										"Disalowed in this chat",
-										nil,
-										u.message.id
-									)
-								end
-							end
-						else
-							$bot.sendMessage(
-								u.message.source['chat']['id'],
-								"You are not permitted to run this",
-								nil,
-								u.message.id
-							)
-						end
-					end
-				else
-					dwarning "Skipping update #{u.update_id}"
-				end
-			end
-		},{}
-	))
-	
-	$plugins = Bot13::load_plg 
-	
-	_ld
-	$plugins.each{|k,v| v.load}
-	unload{$plugins.each{|k,v|v.unload}}
-	
-	$bot.start
-	
+
+
+	token = ($options[:t] || config['token'])
+
+	bot = Bot13::Bot.new(
+		token,
+		home: $home,
+		failsafe: $options[:f],
+		config: config
+	)
+
+	bot.start
+
 
 rescue => e
 	puts "[FATAL] #{(e.class.name.gsub(/([A-Z])/){"_#{$1}"}).upcase.gsub(/::/,'_')}"
