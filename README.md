@@ -1,7 +1,7 @@
 # bot13 - independent version for Telegram.
 Bot for <s>weechat</s> [Telegram](https://telegram.org) written in Ruby<br>
 
-[How to write plugins](PLUGINS.md) **|** [How to configure bot](CONFIG.md) **|** [Site](https://unn4m3d.github.io/bot13)
+[How to write plugins](PLUGINS.md) **|** [How to configure bot](CONFIG.md)
 
 ##Dependencies
 
@@ -19,7 +19,7 @@ See `ruby ./core.rb -h` for more info
 
 
 ##TODO
-- [x] API Documentation
+- [ ] API Documentation
 - [ ] Startup scripts
 - [ ] Plugin ports from 3.0 
 - [ ] Remote control
