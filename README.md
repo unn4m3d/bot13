@@ -4,18 +4,13 @@ Bot for <s>weechat</s> [Telegram](https://telegram.org) written in Ruby<br>
 [How to write plugins](PLUGINS.md) **|** [How to configure bot](CONFIG.md) **|** [Site](https://unn4m3d.github.io/bot13)
 
 ##Dependencies
-####Packages
-1. `hitimes` ( `ruby-hitimes` in ubuntu)
-2. `rspec`	( `ruby-rspec` in ubuntu)
-3. `ruby-dev`
-4. `libcurl4-*-dev` (e.g. `libcurl4-openssl-dev`) **Optional, used for sending photos**
 
 ####Gems
-2. `timers`
-3. `curb`
+2. `telegram-bot-ruby`
 
 ##How to launch
-`cd /path/to/your/bot13/ && ruby ./core.rb`
+`ruby ./core.rb`
+See `ruby ./core.rb -h` for more info
 
 ##How to install
 
@@ -30,6 +25,9 @@ Bot for <s>weechat</s> [Telegram](https://telegram.org) written in Ruby<br>
 - [ ] Remote control
 
 ##Changelog
+####v 3.3 (Telegram)
+New API and plugin format
+
 ####v 3.2.2A (Telegram)
 Fixed missing plugin data<br/>
 Removed some debug messages
