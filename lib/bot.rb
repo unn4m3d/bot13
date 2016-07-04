@@ -75,8 +75,8 @@ module Bot13
 						if not username or username == @userinfo['result']['username'] or h[4]
 							if @permengine.allow?(m.from.id,m.chat.id,h[2],h[3])
 								mesg = Message.new m
-								mesg._command = command
-								mesg._args = args
+								mesg._command = command || ""
+								mesg._args = args || ""
 								h[0].call mesg
 							end
 						end

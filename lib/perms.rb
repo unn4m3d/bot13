@@ -5,10 +5,19 @@ module Bot13
 		end
 
 		def calc(cid)
-			(@global && @local[cid.to_s] ? (@global > @local[cid.to_s] ? @global : @local[cid.to_s]) : @global || @local[cid.to_s] || 0)
+			@global ||= 0
+			@local ||= {}
+			(@global && @local[cid.to_s].to_i ?
+				(@global > @local[cid.to_s].to_i ?
+					@global :
+					@local[cid.to_s].to_i) :
+					@global || @local[cid.to_s].to_i || 0)
 		end
 
 		def self.from_hash(h)
+			h ||= {}
+			h['global'] ||= 0
+			h['local'] ||= {}
 			Perms.new(global:h['global'],local:h['local'])
 		end
 	end
