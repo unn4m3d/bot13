@@ -1,5 +1,9 @@
 require 'optparse'
 require 'telegram/bot'
+<<<<<<< HEAD
+=======
+require 'find'
+>>>>>>> ac965da... ...
 
 lib 'lib/storage'
 lib 'lib/perms'
@@ -10,7 +14,7 @@ module Bot13
 		def initialize(oc)
 			oc.send("attribute_set").each{
 				|attr|
-				self.send(attr.name.to_s + "=",oc.send(attr.name)) #FIXME : It should be rewritten
+				self.send(attr.name.to_s + "=",oc.send(attr.name)) 
 			}
 		end
 	end
@@ -20,6 +24,9 @@ module Bot13
 		attr_accessor	:tgbot,:plugins,:home,:config,:failsafe,:token,:permengine,:storage
 		attr_reader		:handlers,:userinfo,:active_plugins
 
+		def addins_path
+			File.join(@home,"lib","addins")
+		end
 		def load_config(home)
 			begin
 				@config = JSON.parse File.read File.join(home+"/data/config.json")
@@ -30,11 +37,9 @@ module Bot13
 		end
 
 		def class_from_string(str)
-			dinfo str
-			dinfo str.split '::'
-  		str.split('::').inject(Object) do |mod, class_name|
-    		mod.const_get(class_name)
-  		end
+  			str.split('::').inject(Object) do |mod, class_name|
+    			mod.const_get(class_name)
+  			end
 		end
 
 		def listen(cmd:nil,perm:0,pname:nil,ignore_username:false,&b)
@@ -47,16 +52,35 @@ module Bot13
 			@failsafe = failsafe
 			@config = config
 			load_config home unless config
+			dinfo "Searching for addins in #{addins_path}"
+			Find.find(addins_path) do |path|
+				begin
+					dinfo "Found #{path.sub(addins_path,'')} in addins folder"
+					if File.extname(path).match(/\.rb$/i)
+						dinfo "Loading..."
+						Kernel::load path
+					end
+				rescue => e
+					dcritical "Failed to load!"
+					dcritical e.inspect
+					dcritical e.backtrace.join "\n\t"
+				end
+			end
+			dinfo "Launching bot"
+
 			@tgbot = Telegram::Bot::Client.new(@token)
 			@handlers = []
 			#@tgbot = TgAPI::TgBot.new(@token)
 			@plugins = Bot13::load_plg(@home+"/plugins")
 			@active_plugins = []
 
-
+			dinfo "Launching permissions"
 			@permengine = PermEngine.new(class_from_string(@config['perms']['driver']['class']).new(*(@config['perms']['driver']['params'])))
 			if @config['storage']['enable'] then
+				dinfo "Launching storage"
 				@storage = SyncStorage.new(class_from_string(@config['storage']['driver']['class']).new(*(@config['storage']['driver']['params'])))
+			else
+				dinfo "Storage is disabled, skipping"
 			end
 
 		end
@@ -66,7 +90,7 @@ module Bot13
 			if m.text and m.text.start_with? "/","!"
 				command = m.text[1..-1].split(" ",2)
 				command,args = command[0],command[1]
-				command,username = *(command.split("@",2)) if command.include? "@"
+				command,username = *(command.split("@",2)) if command and command.include? "@"
 			end
 			@handlers.each{
 				|h|

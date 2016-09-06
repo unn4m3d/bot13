@@ -37,7 +37,7 @@ module Bot13::Storage
 		end
 
 		def initialize(*params)
-			@dbparams = params
+			@dbparams = params.first
 		end
 
 		def open
@@ -105,7 +105,7 @@ class Hash
 				}
 				return f(a,path)
 			else
-				raise Exception.new "Element must be an array or a hash"
+				raise "Element must be an array or a hash"
 			end
 		end
 		f(self)

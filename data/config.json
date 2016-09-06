@@ -1,5 +1,13 @@
 {
-  "storage":{"enable":false},
+  "storage":{
+  	"enable":true,
+  	"driver":{
+  		"class":"Bot13::Storage::MySQLStorageDriver",
+  		"params":{
+  			
+  		}
+  	}
+  },
   "perms":{
     "driver":{
       "class":"Bot13::JSONPermDriver",

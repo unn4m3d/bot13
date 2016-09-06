@@ -44,7 +44,13 @@ module Bot13
 			unless File.directory?(File.join(dir,d)) #TODO : Loading plugins from directories
 				if d.match(/\.(rb|plg)$/i) then
 					dinfo "Preloaded plugin #{d}"
-					require File.join(dir,d)
+					begin
+						Kernel::load  File.join(dir,d)
+					rescue LoadError => e
+						dcritical "Cannot load plugin"
+						dcritical e
+						dcritical e.backtrace.join("\n\t")
+					end
 				end
 			end
 		end

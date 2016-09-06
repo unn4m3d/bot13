@@ -1,2 +1,6 @@
 plugins/quotes.rb
 data/quotes.json
+<<<<<<< HEAD
+=======
+vendor/*
+>>>>>>> ac965da... ...

@@ -1,5 +1,12 @@
 #!/usr/bin/ruby
+<<<<<<< HEAD
 
+=======
+module Orig
+	alias_method :loadfile, :load
+	module_function :loadfile
+end
+>>>>>>> ac965da... ...
 $home = File.dirname(File.expand_path(__FILE__))
 
 module ExitCodes
