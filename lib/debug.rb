@@ -22,7 +22,7 @@ module Bot13
 		end
 		public	
 		def puts
-			super "#{label} #{info}"
+			super "[#{Time.now.strftime("%H:%M:%S")}] #{label} #{info}"
 		end
 	end
 

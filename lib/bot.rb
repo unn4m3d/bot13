@@ -1,9 +1,6 @@
 require 'optparse'
 require 'telegram/bot'
-<<<<<<< HEAD
-=======
 require 'find'
->>>>>>> ac965da... ...
 
 lib 'lib/storage'
 lib 'lib/perms'
@@ -78,7 +75,7 @@ module Bot13
 			@permengine = PermEngine.new(class_from_string(@config['perms']['driver']['class']).new(*(@config['perms']['driver']['params'])))
 			if @config['storage']['enable'] then
 				dinfo "Launching storage"
-				@storage = SyncStorage.new(class_from_string(@config['storage']['driver']['class']).new(*(@config['storage']['driver']['params'])))
+				@storage = Storage::SyncStorage.new(class_from_string(@config['storage']['driver']['class']).new(*(@config['storage']['driver']['params'])))
 			else
 				dinfo "Storage is disabled, skipping"
 			end
@@ -125,8 +122,18 @@ module Bot13
 
 		def start
 			begin
-				@plugins.each do |plg|
-					@active_plugins << plg.new(self)
+				@plugins.each_with_index do |plg,i|
+					dinfo "Loading plugin #{i+1}/#{Plugin.plugins.size}..."
+					begin
+						plugin =  plg.new(self)
+						dinfo "Initialized #{plugin.name} v#{plugin.version}"
+						@active_plugins << plugin
+						dinfo "Pushed #{plugin.name}"
+					rescue => e
+						dcritical "Failed to load !"
+						dcritical e.to_s
+						dcritical e.backtrace.join "\n\t"
+					end
 				end
 
 				@tgbot.run do

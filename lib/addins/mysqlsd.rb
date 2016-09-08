@@ -111,3 +111,5 @@ class Hash
 		f(self)
 	end
 end
+
+dinfo "[MySQLStorageDriver] Successfully loaded"
