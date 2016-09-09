@@ -76,7 +76,7 @@ begin
 		failsafe: $options[:f],
 		config: config
 	)
-
+	
 	bot.start
 
 

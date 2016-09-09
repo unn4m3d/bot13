@@ -87,9 +87,9 @@ module Bot13::Storage
 			end
 		end
 
-		def initialize(*params)
+		def initialize(bot,*params)
 			@mutex = Mutex.new
-			@filename = params.first
+			@filename = File.join(bot.home,params.first)
 		end
 
 		def open

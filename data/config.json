@@ -2,10 +2,8 @@
   "storage":{
   	"enable":true,
   	"driver":{
-  		"class":"Bot13::Storage::MySQLStorageDriver",
-  		"params":{
-  			
-  		}
+  		"class":"Bot13::Storage::JSONStorageDriver",
+  		"params":["data/storage.json"]
   	}
   },
   "perms":{

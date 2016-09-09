@@ -16,7 +16,6 @@ module Bot13
 		end
 	end
 
-
 	class Bot
 		attr_accessor	:tgbot,:plugins,:home,:config,:failsafe,:token,:permengine,:storage
 		attr_reader		:handlers,:userinfo,:active_plugins
@@ -39,12 +38,17 @@ module Bot13
   			end
 		end
 
-		def listen(cmd:nil,perm:0,pname:nil,ignore_username:false,&b)
+		def listen(cmd:nil,perm:0,pname:nil,ignore_username:false,raw:false,&b)
 			@handlers << [b,cmd,perm,pname,ignore_username]
+		end
+
+		def listen_error(&b)
+			@error_handlers << [b]
 		end
 
 		def initialize(token,home:File.expand_path("./"),failsafe:false,config:nil)
 			@home = home
+			@error_handlers = []
 			@token = token
 			@failsafe = failsafe
 			@config = config
@@ -72,10 +76,10 @@ module Bot13
 			@active_plugins = []
 
 			dinfo "Launching permissions"
-			@permengine = PermEngine.new(class_from_string(@config['perms']['driver']['class']).new(*(@config['perms']['driver']['params'])))
+			@permengine = PermEngine.new(class_from_string(@config['perms']['driver']['class']).new(self,*(@config['perms']['driver']['params'])))
 			if @config['storage']['enable'] then
 				dinfo "Launching storage"
-				@storage = Storage::SyncStorage.new(class_from_string(@config['storage']['driver']['class']).new(*(@config['storage']['driver']['params'])))
+				@storage = Storage::SyncStorage.new(class_from_string(@config['storage']['driver']['class']).new(self,*(@config['storage']['driver']['params'])))
 			else
 				dinfo "Storage is disabled, skipping"
 			end
@@ -83,29 +87,36 @@ module Bot13
 		end
 
 		def process_update(m)
-			command,username,args = nil,nil,nil
-			if m.text and m.text.start_with? "/","!"
-				command = m.text[1..-1].split(" ",2)
-				command,args = command[0],command[1]
-				command,username = *(command.split("@",2)) if command and command.include? "@"
+			if m.kind_of? Telegram::Bot::Types::Message
+				command,username,args = nil,nil,nil
+				if m.text and m.text.start_with? "/","!"
+					command = m.text[1..-1].split(" ",2)
+					command,args = command[0],command[1]
+					command,username = *(command.split("@",2)) if command and command.include? "@"
+				end
 			end
-			@handlers.each{
-				|h|
-				if h[1]
-					if command and command == h[1]
-						if not username or username == @userinfo['result']['username'] or h[4]
-							if @permengine.allow?(m.from.id,m.chat.id,h[2],h[3])
-								mesg = Message.new m
-								mesg._command = command || ""
-								mesg._args = args || ""
-								h[0].call mesg
+			
+			if m.kind_of? Telegram::Bot::Types::Message
+				@handlers.each{
+					|h|
+					if h[1]
+						if command and command == h[1]
+							if not username or username == @userinfo['result']['username'] or h[4]
+								if @permengine.allow?(m.from.id,m.chat.id,h[2],h[3])
+									mesg = Message.new m
+									mesg._command = command || ""
+									mesg._args = args || ""
+									h[0].call mesg
+								end
 							end
 						end
+					else
+						h[0].call m
 					end
-				else
-					h[0].call m
-				end
-			}
+				}
+			else
+				@handlers.select{|x| x[1].nil? }.each{|x| x.first.call m}
+			end
 		end
 
 		def api
@@ -120,36 +131,44 @@ module Bot13
 			@storage.get(key)
 		end
 
-		def start
-			begin
-				@plugins.each_with_index do |plg,i|
-					dinfo "Loading plugin #{i+1}/#{Plugin.plugins.size}..."
-					begin
-						plugin =  plg.new(self)
-						dinfo "Initialized #{plugin.name} v#{plugin.version}"
-						@active_plugins << plugin
-						dinfo "Pushed #{plugin.name}"
-					rescue => e
-						dcritical "Failed to load !"
-						dcritical e.to_s
-						dcritical e.backtrace.join "\n\t"
-					end
+		def on_error(c,e)
+			for h in @error_handlers do
+				result = h.first.call(c,e)
+				case result
+				when :catched
+					return
+				when :passed
+					raise e
 				end
+			end
+		end
 
-				@tgbot.run do
-					|b|
-					@userinfo = b.api.get_me
-					b.listen do
-						|message|
+		def start
+			@plugins.each_with_index do |plg,i|
+				dinfo "Loading plugin #{i+1}/#{Plugin.plugins.size}..."
+				begin
+					plugin =  plg.new(self)
+					dinfo "Initialized #{plugin.name} v#{plugin.version}"
+					@active_plugins << plugin
+					dinfo "Pushed #{plugin.name}"
+				rescue => e
+					dcritical "Failed to load !"
+					dcritical e.to_s
+					dcritical e.backtrace.join "\n\t"
+				end
+			end
+
+			@tgbot.run do
+				|b|
+				@userinfo = b.api.get_me
+				b.listen do
+					|message|
+					begin
 						process_update message
+					rescue => e
+						on_error message, e
 					end
 				end
-			rescue Telegram::Bot::Exceptions::ResponseError => e
-				raise e if not @failsafe or e.error_code == 401
-				dcritical e.to_s
-			rescue => e
-				dcritical e.to_s
-				dcritical e.backtrace.join("\n\t")
 			end
 		end
 

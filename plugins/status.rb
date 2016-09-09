@@ -64,7 +64,7 @@ class StatusPlugin < Bot13::Plugin
 		end
 
 		bot.listen do |msg|
-			if msg.text
+			if msg.kind_of? Telegram::Bot::Types::Message and msg.text
 				if msg.text.match(/[A-ZА-Я]/)
 					add_butthurt(msg.from.id,10*(msg.text.chars.count{|s| s.match(/[A-ZА-Я]/)}/msg.text.size))
 				else

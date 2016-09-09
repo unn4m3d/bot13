@@ -36,7 +36,7 @@ module Bot13::Storage
 			save diff
 		end
 
-		def initialize(*params)
+		def initialize(bot,*params)
 			@dbparams = params.first
 		end
 
