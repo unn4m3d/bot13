@@ -33,9 +33,9 @@ module Bot13
 		end
 
 		def class_from_string(str)
-  			str.split('::').inject(Object) do |mod, class_name|
-    			mod.const_get(class_name)
-  			end
+  		str.split('::').inject(Object) do |mod, class_name|
+    		mod.const_get(class_name)
+  		end
 		end
 
 		def listen(cmd:nil,perm:0,pname:nil,ignore_username:false,raw:false,&b)
