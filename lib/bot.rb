@@ -88,11 +88,9 @@ module Bot13
 
 		def process_update(m)
 			if m.kind_of? Telegram::Bot::Types::Message
-				command,username,args = nil,nil,nil
-				if m.text and m.text.start_with? "/","!"
-					command = m.text[1..-1].split(" ",2)
-					command,args = command[0],command[1]
-					command,username = *(command.split("@",2)) if command and command.include? "@"
+				if m.text && m.text.start_with? "/","!"
+					command,args = m.text[1..-1].split(" ",2)
+					command,username = command.split("@",2) if command && command.include? "@"
 				end
 			end
 			
